@@ -1,40 +1,33 @@
-# CRUD - Gestão de Funcionários
+# CRUD - Gestão Empresarial
+Este projeto consiste em um sistema de gestão de funcionários, departamentos e usuários do sistema.
 
-## Descrição do Projeto
-
-Este projeto consiste em um sistema de gestão de funcionários, departamentos e usuários do sistema. Utiliza tecnologias como SQL, MySQL, Lombok, Log4j2, Maven, Java e padrões de projeto, além de JDBC para interação com o banco de dados.
-
-## Funcionalidades
-
-- Cadastro, leitura, atualização e exclusão de funcionários.
-- Cadastro, leitura, atualização e exclusão de departamentos.
-- Autenticação de usuários no sistema.
-- CRUD completo para usuários do sistema (login, criação, atualização e exclusão).
-- Utilização de padrões de projeto para uma arquitetura robusta e escalável.
-
-## Tecnologias Utilizadas
-
+# Tecnologias Utilizadas
 - SQL
 - MySQL
 - Lombok
 - Log4j2
-- Maven
+- Maven para gestão de dependências
 - Java
 - JDBC
+- Junit5 🚧
+- Mockito 🚧
 
-## Design Patterns Utilizados
-- DAO
+# Design Patterns Utilizados
+- DAO / Repository e Impl / Segregação de interfaces
 - DTO
-- Impl
-- MVC (Model, Service, Controller)
-- Builder 🚧
-- Factory 🚧
+- Builder
+- Factory
+- Mappers
 - Herança TPT no banco de dados
 
-## Como Contribuir
+# Como usar o aplicativo?
+## Pré requisitos
 
-1. Faça um fork do projeto.
-2. Crie uma branch com a sua feature: `git checkout -b feature/nova-feature`
-3. Faça commit das suas alterações: `git commit -m 'Adiciona nova feature'`
-4. Faça push para a sua branch: `git push origin feature/nova-feature`
-5. Envie um pull request.
+0. Certifique-se de ter o `JDK` a partir da versão 17 e o `MySQL` baixados em sua máquina - o MySQL pode ser incluído através de uma imagem Docker
+1. Faça um fork do projeto ou baixe-o em formato `.zip`
+
+2. Todas as bibliotecas utilizadas podem ser alteradas diretamente no arquivo `pom.xml`
+<img src='https://github.com/RayanArgolo03/crud-jdbc-mysql-1/assets/113947677/e9d105ac-91e8-433b-b6d5-0ac4a786a1f2' width='600' height='400'></img>
+
+3. No seu cliente gráfico `MySQL`, rode o código do arquivo `.sql` para replicar o banco de dados utilizado
+//Todo..
