@@ -9,6 +9,7 @@ import enums.departament.DepartamentFindOption;
 import enums.departament.DepartamentUpdateOption;
 import enums.menu.DefaultMessage;
 import exceptions.DepartamentException;
+import lombok.AllArgsConstructor;
 import mappers.DepartamentMapper;
 import utilities.FormatterUtil;
 import utilities.ReaderUtil;
@@ -22,15 +23,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 public final class DepartamentService {
+
     private final DepartamentDAO dao;
     private final DepartamentMapper mapper;
-
-    public DepartamentService() {
-        this.dao = new DepartamentDAOImpl();
-        this.mapper = new DepartamentMapper();
-    }
-
     public Departament createDepartament(final String name) {
         return Departament.builder()
                 .name(name)

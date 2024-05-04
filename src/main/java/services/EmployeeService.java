@@ -19,6 +19,7 @@ import enums.menu.YesOrNo;
 import exceptions.DepartamentException;
 import exceptions.EmployeeException;
 import factory.EmployeeBuilderFactory;
+import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import mappers.NormalEmployeeMapper;
 import mappers.SuperiorEmployeeMapper;
@@ -38,17 +39,12 @@ import java.util.stream.Collectors;
 ;
 
 @FieldDefaults(makeFinal = true)
+@AllArgsConstructor
 public final class EmployeeService {
+
     private NormalEmployeeMapper normalEmployeeMapper;
     private SuperiorEmployeeMapper superiorEmployeeMapper;
     private EmployeeDAO dao;
-
-    public EmployeeService() {
-        this.dao = new EmployeeDAOImpl();
-        this.normalEmployeeMapper = new NormalEmployeeMapper();
-        this.superiorEmployeeMapper = new SuperiorEmployeeMapper();
-    }
-
     public String receiveName() {
 
         String name;

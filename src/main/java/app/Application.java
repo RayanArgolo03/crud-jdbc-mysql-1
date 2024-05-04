@@ -4,6 +4,8 @@ package app;
 import controllers.DepartamentController;
 import controllers.EmployeeController;
 import controllers.UserController;
+import dao.impl.DepartamentDAOImpl;
+import dao.impl.EmployeeDAOImpl;
 import domain.departaments.Departament;
 import domain.employees.Employee;
 import domain.user.User;
@@ -17,17 +19,30 @@ import enums.user.UserMenuOption;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import mappers.DepartamentMapper;
+import mappers.NormalEmployeeMapper;
+import mappers.SuperiorEmployeeMapper;
+import services.DepartamentService;
+import services.EmployeeService;
+import services.UserService;
 import utilities.EnumListUtil;
 import utilities.ReaderUtil;
+
 import java.util.InputMismatchException;
 import java.util.List;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Application {
-    private final static DepartamentController dc = new DepartamentController();
-    private final static EmployeeController ec = new EmployeeController();
-    private final static UserController uc = new UserController();
+    private final static DepartamentController dc = new DepartamentController(
+            new DepartamentService(new DepartamentDAOImpl(), new DepartamentMapper())
+    );
+    private final static EmployeeController ec = new EmployeeController(
+            new EmployeeService(new NormalEmployeeMapper(), new SuperiorEmployeeMapper(), new EmployeeDAOImpl())
+    );
+    private final static UserController uc = new UserController(
+            new UserService()
+    );
 
     public static void main(String[] args) {
         mainMenu();

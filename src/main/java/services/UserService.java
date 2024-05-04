@@ -31,7 +31,13 @@ public final class UserService {
         return name;
     }
 
-    private boolean validUsername(final String username) {
+    public boolean validUsername(final String username) {
+
+        if (username.length() < 3) {
+            throw new UserException(DefaultMessage.INVALID.getValue() +
+                    " Your username has less than 3 characters!");
+        }
+
         return username.length() > 3;
     }
 
@@ -63,7 +69,9 @@ public final class UserService {
         });
     }
 
-    public void saveUser(final User user) {dao.save(user);}
+    public void saveUser(final User user) {
+        dao.save(user);
+    }
 
     public int deleteUser(final long id) {
         return dao.deleteById(id);
