@@ -15,13 +15,13 @@ public final class ReaderUtil {
 
         System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), "your choice");
         PrintEnumsUtil.printEnums(availableEnums);
-        int choice = readInt();
+        int choice;
 
-        while (choice < 0 || choice >= availableEnums.size()) {
+        //Modifyning choice input, comparision and assignment in one line
+        while (!validChoice(choice = readInt(), availableEnums.size())) {
             System.out.println(DefaultMessage.INVALID.getValue());
             System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), "your choice");
             PrintEnumsUtil.printEnums(availableEnums);
-            choice = readInt();
         }
 
         return availableEnums.get(choice);
@@ -38,6 +38,10 @@ public final class ReaderUtil {
     public static String readString(final String title) {
         System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), title);
         return sc.next();
+    }
+
+    public static boolean validChoice(final int choice, final int total) {
+        return choice > -1 && choice <= total;
     }
 
 }
