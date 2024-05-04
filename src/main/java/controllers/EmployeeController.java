@@ -7,6 +7,7 @@ import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeType;
 import enums.employee.EmployeeUpdateOption;
+import lombok.AllArgsConstructor;
 import services.EmployeeService;
 
 import java.math.BigDecimal;
@@ -14,13 +15,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+@AllArgsConstructor
 public final class EmployeeController {
 
     private final EmployeeService service;
 
-    public EmployeeController() {
-        this.service = new EmployeeService();
-    }
 
     public void create(final List<Departament> departaments) {
 

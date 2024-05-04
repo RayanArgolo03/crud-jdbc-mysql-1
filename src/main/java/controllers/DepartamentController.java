@@ -4,18 +4,17 @@ import domain.departaments.Departament;
 import enums.departament.DepartamentDeleteOption;
 import enums.departament.DepartamentFindOption;
 import enums.departament.DepartamentUpdateOption;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import services.DepartamentService;
 
 import java.util.List;
 
 @Log4j2
+@AllArgsConstructor
 public final class DepartamentController {
 
     private final DepartamentService service;
-    public DepartamentController() {
-        this.service = new DepartamentService();
-    }
 
     public void create() {
 

@@ -1,14 +1,12 @@
 package controllers;
 
 import domain.user.User;
+import lombok.AllArgsConstructor;
 import services.UserService;
 
+@AllArgsConstructor
 public final class UserController {
     private final UserService service;
-
-    public UserController() {
-        service = new UserService();
-    }
 
     public User create() {
 
