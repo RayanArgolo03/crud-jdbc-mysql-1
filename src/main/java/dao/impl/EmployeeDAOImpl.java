@@ -2,11 +2,11 @@ package dao.impl;
 
 import dao.interfaces.EmployeeDAO;
 import database.DbConnection;
-import domain.departaments.Departament;
-import domain.departaments.Level;
-import domain.employees.Employee;
-import domain.employees.NormalEmployee;
-import domain.employees.SuperiorEmployee;
+import domain.departament.Departament;
+import domain.departament.Level;
+import domain.employee.Employee;
+import domain.employee.NormalEmployee;
+import domain.employee.SuperiorEmployee;
 import dto.employee.EmployeeBaseDTO;
 import dto.employee.NormalEmployeeDTO;
 import dto.employee.SuperiorEmployeeDTO;
@@ -29,11 +29,16 @@ public final class EmployeeDAOImpl implements EmployeeDAO {
 
         log.info("Tryning to save {}.. \n", employee.getName());
 
-        //If no error occurs, this conection will be closed in a specific method of save employee, below
+        //If error occurs, not open; if not occurs, open and close in save specific employee
         final Connection c = DbConnection.getConnection();
 
-        try (PreparedStatement ps = this.createQueryForSaveBaseEmployee(c, employee);
-             ResultSet rs = this.executeSaveEmployee(c, ps)) {
+        try (PreparedStatement ps = this.createQueryForSaveBaseEmployee(c,
+                employee.getName(),
+                employee.getBirthDate(),
+                employee.getAge(),
+                employee.getDocument());
+             ResultSet rs = this.executeSaveEmployee(c, ps)
+        ) {
 
             rs.next();
             final Long employeeId = rs.getLong(1);
@@ -65,7 +70,11 @@ public final class EmployeeDAOImpl implements EmployeeDAO {
 
     }
 
-    private PreparedStatement createQueryForSaveBaseEmployee(final Connection c, final Employee employee)
+    private PreparedStatement createQueryForSaveBaseEmployee(final Connection c,
+                                                             final String name,
+                                                             final LocalDate birthDate,
+                                                             final int age,
+                                                             final String document)
             throws SQLException {
 
         final String SAVE_BASE_EMPLOYEE = """
@@ -75,10 +84,10 @@ public final class EmployeeDAOImpl implements EmployeeDAO {
 
         PreparedStatement ps = c.prepareStatement(SAVE_BASE_EMPLOYEE, Statement.RETURN_GENERATED_KEYS);
 
-        ps.setString(1, employee.getName());
-        ps.setDate(2, Date.valueOf(employee.getBirthDate()));
-        ps.setInt(3, employee.getAge());
-        ps.setString(4, employee.getDocument());
+        ps.setString(1, name);
+        ps.setDate(2, Date.valueOf(birthDate));
+        ps.setInt(3, age);
+        ps.setString(4, document);
 
         return ps;
     }
@@ -141,14 +150,14 @@ public final class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public void saveNormalEmployee(final NormalEmployee normalEmployee) {
+    public void saveNormalEmployee(final NormalEmployee ne) {
 
-        log.info("Tryning to save {} with your type in inheritance table \n", normalEmployee.getName());
+        log.info("Tryning to save {} with your type in inheritance table \n", ne.getName());
 
         //Get opened connection!
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForSaveNormalEmp(c, normalEmployee.getId(),
-                     normalEmployee.isHasFaculty())) {
+             PreparedStatement ps = this.createQueryForSaveNormalEmp(c, ne.getId(),
+                     ne.isHasFaculty())) {
 
             ps.execute();
 
@@ -177,14 +186,14 @@ public final class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public void saveSuperiorEmployee(final SuperiorEmployee superiorEmployee) {
+    public void saveSuperiorEmployee(final SuperiorEmployee se) {
 
-        log.info("Tryning to save {} with your type in inheritance table \n", superiorEmployee.getName());
+        log.info("Tryning to save {} with your type in inheritance table \n", se.getName());
 
         //Get opened connection!
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForSaveSuperiorEmp(c, superiorEmployee.getId(),
-                     superiorEmployee.getWorkExperience())) {
+             PreparedStatement ps = this.createQueryForSaveSuperiorEmp(c, se.getId(),
+                     se.getWorkExperience())) {
 
             ps.execute();
 

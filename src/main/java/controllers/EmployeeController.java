@@ -1,8 +1,8 @@
 package controllers;
 
-import domain.departaments.Departament;
-import domain.departaments.Level;
-import domain.employees.Employee;
+import domain.departament.Departament;
+import domain.departament.Level;
+import domain.employee.Employee;
 import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeType;
@@ -20,31 +20,33 @@ public final class EmployeeController {
 
     private final EmployeeService service;
 
-
     public void create(final List<Departament> departaments) {
 
-        final String name = service.receiveName();
-        final String document = service.receiveDocument();
+        String name = service.receiveInputString("first name (without special characters and more than three letters!)");
+        name = service.validateAndFormatName(name);
 
-        final LocalDate birthDate = service.receiveDate("birth date (pattern dd/MM/yyyy)");
+        final String document = service.receiveInputString("document (CPF with dots and dash)");
+        service.validateDocument(document);
+
+        final String dateInString = service.receiveInputString("birth date (pattern dd/MM/yyyy)");
+        final LocalDate birthDate = service.parseAndValidateDate(dateInString);
         final int age = service.generateAge(birthDate);
 
         final Map<Departament, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departaments);
 
-        System.out.println("Employee type");
-        final EmployeeType type = service.receiveOption(EmployeeType.class);
+        final EmployeeType type = service.receiveEnumElement("Employee type", EmployeeType.class);
         final Employee employee = service.createEmployee(name, document, birthDate, age, dls, type);
+        service.defineSpecificAtributtes(employee);
 
-        //Throw exception if document alredy exists! Not commit here
+        //Not commit here, and throw exception if there are problems
         service.saveBaseEmployee(employee);
 
         //This method closes the connection opened above and commit the changes!
         service.saveSpecificEmployee(employee);
     }
 
-    public List<Employee> find(final List<EmployeeFindOption> availableEnums) {
-        System.out.println("Receiving option to find..");
-        final EmployeeFindOption option = service.receiveOption(availableEnums);
+    public List<Employee> find() {
+        EmployeeFindOption option = service.receiveEnumElement("find option", EmployeeFindOption.class);
         return service.findByOption(option);
     }
 
@@ -55,14 +57,12 @@ public final class EmployeeController {
     }
 
     public void update(final Employee employee) {
-        System.out.println("Receiving option to update..");
-        final EmployeeUpdateOption option = service.receiveOption(EmployeeUpdateOption.class);
+        final EmployeeUpdateOption option = service.receiveEnumElement("Option to update", EmployeeUpdateOption.class);
         service.updateByOption(option, employee);
     }
 
     public int delete(final List<Departament> departaments) {
-        System.out.println("Receiving option to delete..");
-        final EmployeeDeleteOption option = service.receiveOption(EmployeeDeleteOption.class);
+        final EmployeeDeleteOption option = service.receiveEnumElement("Option to delete", EmployeeDeleteOption.class);
         return service.deleteByOption(option, departaments);
     }
 }

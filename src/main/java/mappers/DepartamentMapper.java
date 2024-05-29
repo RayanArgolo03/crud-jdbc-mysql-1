@@ -1,6 +1,6 @@
 package mappers;
 
-import domain.departaments.Departament;
+import domain.departament.Departament;
 import dto.departament.DepartamentDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

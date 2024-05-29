@@ -6,12 +6,12 @@ import controllers.EmployeeController;
 import controllers.UserController;
 import dao.impl.DepartamentDAOImpl;
 import dao.impl.EmployeeDAOImpl;
-import domain.departaments.Departament;
-import domain.employees.Employee;
+import dao.impl.UserDAOImpl;
+import domain.departament.Departament;
+import domain.employee.Employee;
 import domain.user.User;
 import enums.departament.DepartamentFindOption;
 import enums.departament.DepartamentMenuOption;
-import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeMenuOption;
 import enums.menu.DefaultMessage;
 import enums.menu.MenuOption;
@@ -22,11 +22,12 @@ import lombok.extern.log4j.Log4j2;
 import mappers.DepartamentMapper;
 import mappers.NormalEmployeeMapper;
 import mappers.SuperiorEmployeeMapper;
+import mappers.UserMapper;
 import services.DepartamentService;
 import services.EmployeeService;
 import services.UserService;
-import utilities.EnumListUtil;
-import utilities.ReaderUtil;
+import utils.EnumListUtils;
+import utils.ReaderUtils;
 
 import java.util.InputMismatchException;
 import java.util.List;
@@ -41,7 +42,7 @@ public final class Application {
             new EmployeeService(new NormalEmployeeMapper(), new SuperiorEmployeeMapper(), new EmployeeDAOImpl())
     );
     private final static UserController uc = new UserController(
-            new UserService()
+            new UserService(new UserDAOImpl(), new UserMapper())
     );
 
     public static void main(String[] args) {
@@ -54,7 +55,8 @@ public final class Application {
         UserMenuOption option = null;
         do {
             try {
-                option = ReaderUtil.readEnum(EnumListUtil.getEnumList(UserMenuOption.class));
+                option = ReaderUtils.readElement("user option",
+                        EnumListUtils.getEnumList(UserMenuOption.class));
 
                 User user;
                 switch (option) {
@@ -75,10 +77,8 @@ public final class Application {
             } catch (InputMismatchException e) {
                 log.error(DefaultMessage.INVALID.getValue());
                 System.exit(0);
-            }
-            //Throwable in user constructor
-            catch (NullPointerException e) {
-                log.error("Null value!");
+            } catch (NullPointerException e) {
+                log.error("Null value! {}", e.getMessage());
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
@@ -90,7 +90,9 @@ public final class Application {
 
         log.info("{} logged into the system! \n", username);
 
-        final MenuOption option = ReaderUtil.readEnum(EnumListUtil.getEnumList(MenuOption.class));
+        final MenuOption option = ReaderUtils.readElement("menu option",
+                EnumListUtils.getEnumList(MenuOption.class));
+
         switch (option) {
             case OUT -> log.info("Logout {}.. \n", username);
             case EMPLOYEES -> employeesMenu();
@@ -103,9 +105,8 @@ public final class Application {
 
         do {
             try {
-                EmployeeMenuOption option = ReaderUtil.readEnum(
-                        EnumListUtil.getEnumList(EmployeeMenuOption.class)
-                );
+                EmployeeMenuOption option = ReaderUtils.readElement("employee option",
+                        EnumListUtils.getEnumList(EmployeeMenuOption.class));
 
                 switch (option) {
                     case OUT -> {
@@ -115,10 +116,10 @@ public final class Application {
                         ec.create(dc.findAll());
                     }
                     case UPDATE -> {
-                        final List<Employee> employeesFound = ec.find(List.of(
-                                EmployeeFindOption.ID, EmployeeFindOption.DOCUMENT, EmployeeFindOption.NAME
-                        ));
 
+                        final List<Employee> employeesFound = ec.find();
+
+                        //Todo melhorar método
                         final Employee employee = ec.chooseEmployeeToUpdate(employeesFound);
                         System.out.printf("\nEmployee before update: \n%s", employee);
 
@@ -126,8 +127,7 @@ public final class Application {
                         System.out.printf("Employee after update:\n%s", employee);
                     }
                     case SHOW -> {
-                        ec.find(EnumListUtil.getEnumList(EmployeeFindOption.class))
-                                .forEach(employee -> System.out.printf("\n%s \n", employee));
+                        ec.find().forEach(employee -> System.out.printf("\n%s \n", employee));
                     }
                     case DELETE -> {
                         System.out.println("Employees dismissed: " + ec.delete(dc.findAll()));
@@ -150,8 +150,9 @@ public final class Application {
         do {
             try {
 
-                DepartamentMenuOption option = ReaderUtil.readEnum(
-                        EnumListUtil.getEnumList(DepartamentMenuOption.class)
+                DepartamentMenuOption option = ReaderUtils.readElement(
+                        "departament option",
+                        EnumListUtils.getEnumList(DepartamentMenuOption.class)
                 );
 
                 switch (option) {
@@ -171,7 +172,7 @@ public final class Application {
                         System.out.printf("\nDepartament after update:\n%s", departament);
                     }
                     case SHOW -> {
-                        dc.find(EnumListUtil.getEnumList(DepartamentFindOption.class))
+                        dc.find(EnumListUtils.getEnumList(DepartamentFindOption.class))
                                 .forEach(d -> System.out.printf("\n%s\n", d));
                     }
                     case DELETE -> {

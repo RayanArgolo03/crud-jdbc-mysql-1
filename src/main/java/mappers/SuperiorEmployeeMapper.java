@@ -1,6 +1,6 @@
 package mappers;
 
-import domain.employees.SuperiorEmployee;
+import domain.employee.SuperiorEmployee;
 import dto.employee.SuperiorEmployeeDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

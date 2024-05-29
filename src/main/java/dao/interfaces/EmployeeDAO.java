@@ -1,10 +1,10 @@
 package dao.interfaces;
 
-import domain.departaments.Departament;
-import domain.departaments.Level;
-import domain.employees.Employee;
-import domain.employees.NormalEmployee;
-import domain.employees.SuperiorEmployee;
+import domain.departament.Departament;
+import domain.departament.Level;
+import domain.employee.Employee;
+import domain.employee.NormalEmployee;
+import domain.employee.SuperiorEmployee;
 import dto.employee.EmployeeBaseDTO;
 
 import java.math.BigDecimal;
@@ -17,9 +17,9 @@ import java.util.Optional;
 public interface EmployeeDAO extends EntityDAO<Employee> {
     void saveJobsInformation(Connection c, long id, Map<Departament, Map<Level, BigDecimal>> dls);
 
-    void saveNormalEmployee(NormalEmployee normalEmployee);
+    void saveNormalEmployee(NormalEmployee ne);
 
-    void saveSuperiorEmployee(SuperiorEmployee superiorEmployee);
+    void saveSuperiorEmployee(SuperiorEmployee se);
 
     Optional<EmployeeBaseDTO> findById(long id);
 

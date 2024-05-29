@@ -2,7 +2,7 @@ package dao.impl;
 
 import dao.interfaces.DepartamentDAO;
 import database.DbConnection;
-import domain.departaments.Departament;
+import domain.departament.Departament;
 import dto.departament.DepartamentDTO;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
@@ -65,6 +65,7 @@ public final class DepartamentDAOImpl implements DepartamentDAO {
         log.info("Tryning to find departaments.. \n");
 
         final List<DepartamentDTO> departaments = new ArrayList<>();
+
         try (Connection c = DbConnection.getConnection();
              ResultSet rs = this.executeFindAll(c)) {
 
@@ -239,12 +240,12 @@ public final class DepartamentDAOImpl implements DepartamentDAO {
 
             //Commit delete in departament id delete method
             c.setAutoCommit(false);
-            int rowsDeleted = ps0.executeUpdate();
+            int employeesDismissed = ps0.executeUpdate();
 
             if (ps1.executeUpdate() == 0) throw new DbConnectionException("Error in delete by id!");
             c.commit();
 
-            return rowsDeleted;
+            return employeesDismissed;
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());

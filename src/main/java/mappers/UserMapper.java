@@ -10,7 +10,7 @@ public final class UserMapper {
 
     //Not using builder because the small number of atributtes
     public User dtoToEntity(final UserDTO dto) {
-        final User user = new User(dto.getUsername(), dto.getPassword());
+        User user = new User(dto.getUsername(), dto.getPassword());
         user.setId(dto.getId());
         return user;
     }

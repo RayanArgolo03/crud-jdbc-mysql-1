@@ -1,6 +1,7 @@
 package controllers;
 
-import domain.departaments.Departament;
+import domain.departament.Departament;
+import dto.departament.DepartamentDTO;
 import enums.departament.DepartamentDeleteOption;
 import enums.departament.DepartamentFindOption;
 import enums.departament.DepartamentUpdateOption;
@@ -27,13 +28,14 @@ public final class DepartamentController {
     }
 
     public List<Departament> findAll() {
-        return service.findAllDepartaments();
+        final List<DepartamentDTO> departaments = service.findAll();
+        return service.mapDepartaments(departaments);
     }
 
     public List<Departament> find(final List<DepartamentFindOption> options) {
         System.out.println("Receiving option to find..");
-        final DepartamentFindOption option = service.receiveOption(options);
-        return service.findByOption(option);
+        //Todo alterar
+        return service.findByOption(DepartamentFindOption.NAME);
     }
 
     public Departament chooseDepartamentToUpdate(final List<Departament> departamentsFound) {

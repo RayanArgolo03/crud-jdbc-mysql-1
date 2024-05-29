@@ -1,4 +1,4 @@
-package domain.employees;
+package domain.employee;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;

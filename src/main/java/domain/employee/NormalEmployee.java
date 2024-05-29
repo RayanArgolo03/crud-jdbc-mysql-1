@@ -1,15 +1,15 @@
-package domain.employees;
+package domain.employee;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Getter
+@Setter
 public class NormalEmployee extends Employee {
+
     private boolean hasFaculty;
-    public void setHasFaculty() {
-        this.hasFaculty = true;
-    }
     @Override
     public String toString() {
         String str = (hasFaculty) ? "Has faculty!" : "No has faculty :(";

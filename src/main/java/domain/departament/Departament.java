@@ -1,4 +1,4 @@
-package domain.departaments;
+package domain.departament;
 
 import lombok.Builder;
 import lombok.Getter;

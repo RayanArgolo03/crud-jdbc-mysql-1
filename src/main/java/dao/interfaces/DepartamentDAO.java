@@ -1,6 +1,6 @@
 package dao.interfaces;
 
-import domain.departaments.Departament;
+import domain.departament.Departament;
 import dto.departament.DepartamentDTO;
 
 import java.time.LocalDate;

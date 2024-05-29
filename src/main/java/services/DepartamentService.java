@@ -1,8 +1,7 @@
 package services;
 
-import dao.impl.DepartamentDAOImpl;
 import dao.interfaces.DepartamentDAO;
-import domain.departaments.Departament;
+import domain.departament.Departament;
 import dto.departament.DepartamentDTO;
 import enums.departament.DepartamentDeleteOption;
 import enums.departament.DepartamentFindOption;
@@ -11,8 +10,8 @@ import enums.menu.DefaultMessage;
 import exceptions.DepartamentException;
 import lombok.AllArgsConstructor;
 import mappers.DepartamentMapper;
-import utilities.FormatterUtil;
-import utilities.ReaderUtil;
+import utils.FormatterUtils;
+import utils.ReaderUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +27,7 @@ public final class DepartamentService {
 
     private final DepartamentDAO dao;
     private final DepartamentMapper mapper;
+
     public Departament createDepartament(final String name) {
         return Departament.builder()
                 .name(name)
@@ -41,7 +41,8 @@ public final class DepartamentService {
     }
 
     public <T extends Enum<T>> T receiveOption(final List<T> list) {
-        return ReaderUtil.readEnum(list);
+        return ReaderUtils.readElement("a", list);
+
     }
 
     public List<Departament> findByOption(final DepartamentFindOption option) {
@@ -64,11 +65,11 @@ public final class DepartamentService {
 
     private LocalDate receiveCreationDate() {
 
-        String creationDateInString = ReaderUtil.readString("creation date(pattern dd/mm/yyyy)");
+        String creationDateInString = ReaderUtils.readString("creation date(pattern dd/mm/yyyy)");
         LocalDate date;
         while (Objects.isNull(date = parseAndValidateDate(creationDateInString))) {
             System.out.println(DefaultMessage.INVALID.getValue() + " Pattern dd/mm/yyyy !!!");
-            creationDateInString = ReaderUtil.readString("creation date(pattern dd/mm/yyyy)");
+            creationDateInString = ReaderUtils.readString("creation date(pattern dd/mm/yyyy)");
         }
 
         return date;
@@ -105,11 +106,11 @@ public final class DepartamentService {
     public String receiveName() {
 
         String name;
-        while (!validName(name = ReaderUtil.readString("departament name"))) {
+        while (!validName(name = ReaderUtils.readString("departament name"))) {
             System.out.println(DefaultMessage.INVALID.getValue());
         }
 
-        name = FormatterUtil.formatName(name);
+        name = FormatterUtils.formatName(name);
 
         return name;
     }
@@ -117,9 +118,9 @@ public final class DepartamentService {
     private long receiveId() {
 
         System.out.printf("%s %s: ", DefaultMessage.ENTER_WITH.getValue(), "departament id");
-        long id;
+        long id = 2;
 
-        while (!validId(id = ReaderUtil.readLong())) {
+        while (id < 1) {
             System.out.println(DefaultMessage.INVALID.getValue());
             System.out.printf("%s %s: ", DefaultMessage.ENTER_WITH.getValue(), "departament id");
 
@@ -134,16 +135,18 @@ public final class DepartamentService {
                 .orElseThrow(() -> new DepartamentException("Departament not found!"));
     }
 
-    public List<Departament> findAllDepartaments() {
+    public List<DepartamentDTO> findAll() {
+        return dao.findAll();
+    }
 
-        final List<DepartamentDTO> departaments = dao.findAll();
+    public List<Departament> mapDepartaments(final List<DepartamentDTO> departaments) {
+
         if (departaments.isEmpty()) throw new DepartamentException("Departaments not found!");
 
         return departaments.stream()
                 .map(mapper::dtoToEntity)
                 .collect(Collectors.toList());
     }
-
 
     public Departament receiveDepartament(final List<Departament> departamentsFound) {
 
@@ -152,7 +155,7 @@ public final class DepartamentService {
 
         for (Departament d : departamentsFound) System.out.printf("%s", d);
 
-        long choice = ReaderUtil.readLong();
+        long choice = 1;
         return departamentsFound.stream()
                 .filter(d -> d.getId().equals(choice))
                 .findFirst()
@@ -185,7 +188,6 @@ public final class DepartamentService {
     }
 
     public int deleteByOption(final DepartamentDeleteOption departamentDeleteOption) {
-
 
         return switch (departamentDeleteOption) {
             case ID -> {

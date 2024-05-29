@@ -6,14 +6,19 @@ import services.UserService;
 
 @AllArgsConstructor
 public final class UserController {
+
     private final UserService service;
 
     public User create() {
 
-        final String username = service.receiveUsername();
+        final String username = service.receiveInput("username(with more than 3 characters and contain at least 1 special character):");
+        service.validateUsername(username);
+
+        //Not allow continue if user alredy exists in the database
         service.findUsername(username);
 
-        String password = service.receivePassword();
+        final String password = service.receiveInput("password (with more than 1 special character)");
+        service.validatePassword(password);
 
         User user = new User(username, password);
         service.saveUser(user);
@@ -22,13 +27,13 @@ public final class UserController {
     }
 
     public User find() {
-        final String username = service.receiveUsername();
-        final String password = service.receivePassword();
+        final String username = service.receiveInput("username");
+        final String password = service.receiveInput("password");
         return service.findUser(username, password);
     }
 
     public int delete(final User user) {
-        return service.deleteUser(user.getId());
+        return service.deleteUser(user);
     }
 
 }

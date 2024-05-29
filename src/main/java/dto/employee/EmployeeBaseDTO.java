@@ -1,7 +1,7 @@
 package dto.employee;
 
-import domain.departaments.Departament;
-import domain.departaments.Level;
+import domain.departament.Departament;
+import domain.departament.Level;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;

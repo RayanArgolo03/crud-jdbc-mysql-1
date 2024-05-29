@@ -1,79 +1,70 @@
 package services;
 
-import dao.impl.UserDAOImpl;
 import dao.interfaces.UserDAO;
 import domain.user.User;
-import enums.menu.DefaultMessage;
 import exceptions.UserException;
+import lombok.AllArgsConstructor;
 import mappers.UserMapper;
-import utilities.FormatterUtil;
-import utilities.ReaderUtil;
+import utils.ReaderUtils;
 
+import java.util.Objects;
+
+@AllArgsConstructor
 public final class UserService {
+
     private final UserDAO dao;
     private final UserMapper mapper;
 
-    public UserService() {
-        this.dao = new UserDAOImpl();
-        this.mapper = new UserMapper();
+    public String receiveInput(String title) {
+        return ReaderUtils.readString(title);
     }
 
-    public String receiveUsername() {
+    public void validateUsername(final String username) {
 
-        String name;
-        if (!validUsername(name = ReaderUtil.readString("username (with more than 3 characters)"))) {
-            throw new UserException(DefaultMessage.INVALID.getValue() +
-                    " Your username has less than 3 characters!");
-        }
-
-        name = FormatterUtil.formatName(name);
-
-        return name;
-    }
-
-    public boolean validUsername(final String username) {
+        Objects.requireNonNull(username, "Username can´t be null");
 
         if (username.length() < 3) {
-            throw new UserException(DefaultMessage.INVALID.getValue() +
-                    " Your username has less than 3 characters!");
+            throw new UserException(String.format("Username %s has less than 3 characters!", username));
         }
 
-        return username.length() > 3;
-    }
-
-    public String receivePassword() {
-
-        final String password;
-        if (!validPassword(password = ReaderUtil.readString("password (with more than 1 special character)"))) {
-            throw new UserException(DefaultMessage.INVALID.getValue() +
-                    " Your password has less than 1 special characters!");
+        if (!username.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*")) {
+            throw new UserException(String.format("Username %s not contains at least 1 special character!", username));
         }
-
-        return password;
     }
 
-    private boolean validPassword(final String password) {
-        //Contains at least 1 special character
-        return password.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*");
+    public void validatePassword(final String password) {
+
+        Objects.requireNonNull(password, "Password can´t be null!");
+
+        if (!password.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*")) {
+            throw new UserException(String.format("Password %s not contains at least 1 special character!", password));
+        }
     }
 
-    public User findUser(final String username, final String password) {
-        return dao.findUser(username, password)
-                .map(mapper::dtoToEntity)
-                .orElseThrow(() -> new UserException("User not found!"));
-    }
 
     public void findUsername(final String username) {
         dao.findUsername(username).ifPresent((name) -> {
-            throw new UserException("User " + name + " alredy exists!");
+            throw new UserException(String.format("User %s alredy exists!", name));
         });
     }
 
+    public User findUser(final String username, final String password) {
+
+        Objects.requireNonNull(username, "Username can´t be null!");
+        Objects.requireNonNull(password, "Password can´t be null!");
+
+        return dao.findUser(username, password)
+                .map(mapper::dtoToEntity)
+                .orElseThrow(() -> new UserException(String.format("User %s not found!", username)));
+    }
+
     public void saveUser(final User user) {
+        Objects.requireNonNull(user, "User can´t be null!");
         dao.save(user);
     }
 
-    public int deleteUser(final long id) {
-        return dao.deleteById(id);
+    public int deleteUser(final User user) {
+        Objects.requireNonNull(user, "User can´t be null!");
+        return dao.deleteById(user.getId());
     }
 }

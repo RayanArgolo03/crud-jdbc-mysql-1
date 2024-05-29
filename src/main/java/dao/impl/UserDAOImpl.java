@@ -29,64 +29,10 @@ public final class UserDAOImpl implements UserDAO {
             final Long id = rs.getLong(1);
             user.setId(id);
 
-        } catch (SQLException e) { throw new DbConnectionException(e.getMessage());
-
-        }
-    }
-
-    //Return user id for print
-    @Override
-    public int deleteById(long id) {
-
-        log.info("Tryning to delete user with id {}.. \n", id);
-
-        try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForDeleteUser(c, id)) {
-
-            if (ps.executeUpdate() == 0) throw new DbConnectionException("Exclusion not completed!");
-
-            return Integer.parseInt(String.valueOf(id));
-
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
+
         }
-
-    }
-
-    @Override
-    public Optional<String> findUsername(final String username) {
-
-        log.info("Tryning to find user with username {} in the database.. \n", username);
-
-        try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForFindUsername(c, username);
-             ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) return Optional.of(rs.getString("username"));
-
-        } catch (SQLException e) {
-            throw new DbConnectionException(e.getMessage());
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<UserDTO> findUser(final String username, final String password) {
-
-        log.info("Tryning to find {} in the database.. \n", username);
-
-        try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForFindUser(c, username, password);
-             ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) return Optional.of(this.createUserDTO(rs));
-
-        } catch (SQLException e) {
-            throw new DbConnectionException(e.getMessage());
-        }
-
-        return Optional.empty();
     }
 
     private PreparedStatement createQueryForSaveUser(final Connection c, final User user)
@@ -108,12 +54,49 @@ public final class UserDAOImpl implements UserDAO {
         return ps.getGeneratedKeys();
     }
 
+    //Return user id for print
+    @Override
+    public int deleteById(long id) {
+
+        log.info("Tryning to delete user with id {}.. \n", id);
+
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = this.createQueryForDeleteUser(c, id)) {
+
+            if (ps.executeUpdate() == 0) throw new DbConnectionException("Exclusion not completed!");
+
+            return Integer.parseInt(String.valueOf(id));
+
+        } catch (SQLException e) {
+            throw new DbConnectionException(e.getMessage());
+        }
+
+    }
+
     private PreparedStatement createQueryForDeleteUser(final Connection c, final Long id)
             throws SQLException {
 
         PreparedStatement ps = c.prepareStatement("DELETE FROM users AS u WHERE u.id = ?");
         ps.setLong(1, id);
         return ps;
+    }
+
+    @Override
+    public Optional<String> findUsername(final String username) {
+
+        log.info("Tryning to find user with username {} in the database.. \n", username);
+
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = this.createQueryForFindUsername(c, username);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) return Optional.of(rs.getString("username"));
+
+        } catch (SQLException e) {
+            throw new DbConnectionException(e.getMessage());
+        }
+
+        return Optional.empty();
     }
 
     private PreparedStatement createQueryForFindUsername(final Connection c, final String username)
@@ -125,6 +108,24 @@ public final class UserDAOImpl implements UserDAO {
         PreparedStatement ps = c.prepareStatement(FIND_USERNAME);
         ps.setString(1, username);
         return ps;
+    }
+
+    @Override
+    public Optional<UserDTO> findUser(final String username, final String password) {
+
+        log.info("Tryning to find {} in the database.. \n", username);
+
+        try (Connection c = DbConnection.getConnection();
+             PreparedStatement ps = this.createQueryForFindUser(c, username, password);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) return Optional.of(this.createUserDTO(rs));
+
+        } catch (SQLException e) {
+            throw new DbConnectionException(e.getMessage());
+        }
+
+        return Optional.empty();
     }
 
     private PreparedStatement createQueryForFindUser(final Connection c, final String username,
@@ -140,6 +141,7 @@ public final class UserDAOImpl implements UserDAO {
         ps.setString(2, password);
         return ps;
     }
+
 
     private UserDTO createUserDTO(final ResultSet rs) throws SQLException {
         final Long id = rs.getLong("id");
