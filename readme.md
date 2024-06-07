@@ -6,7 +6,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 - MySQL
 - Lombok
 - Log4j2
-- Maven para gestão de dependências
+- Maven
 - Java
 - JDBC
 - Junit5 🚧
