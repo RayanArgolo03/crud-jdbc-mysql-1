@@ -1,6 +1,6 @@
-package dao.impl;
+package repositories.impl;
 
-import dao.interfaces.UserDAO;
+import repositories.interfaces.UserRepository;
 import database.DbConnection;
 import domain.user.User;
 import dto.user.UserDTO;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Log4j2
 @NoArgsConstructor
-public final class UserDAOImpl implements UserDAO {
+public final class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void save(final User user) {
@@ -34,6 +34,7 @@ public final class UserDAOImpl implements UserDAO {
 
         }
     }
+
 
     private PreparedStatement createQueryForSaveUser(final Connection c, final User user)
             throws SQLException {

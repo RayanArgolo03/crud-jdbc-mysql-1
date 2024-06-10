@@ -1,6 +1,6 @@
-package dao.impl;
+package repositories.impl;
 
-import dao.interfaces.DepartamentDAO;
+import repositories.interfaces.DepartamentRepository;
 import database.DbConnection;
 import domain.departament.Departament;
 import dto.departament.DepartamentDTO;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Log4j2
 @NoArgsConstructor
-public final class DepartamentDAOImpl implements DepartamentDAO {
+public final class DepartamentRepositoryImpl implements DepartamentRepository {
 
     @Override
     public void save(final Departament departament) {

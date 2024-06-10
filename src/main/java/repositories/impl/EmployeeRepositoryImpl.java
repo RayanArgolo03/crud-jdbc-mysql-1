@@ -1,6 +1,6 @@
-package dao.impl;
+package repositories.impl;
 
-import dao.interfaces.EmployeeDAO;
+import repositories.interfaces.EmployeeRepository;
 import database.DbConnection;
 import domain.departament.Departament;
 import domain.departament.Level;
@@ -23,7 +23,7 @@ import java.util.*;
 
 @Log4j2
 @NoArgsConstructor
-public final class EmployeeDAOImpl implements EmployeeDAO {
+public final class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public void save(final Employee employee) {
 

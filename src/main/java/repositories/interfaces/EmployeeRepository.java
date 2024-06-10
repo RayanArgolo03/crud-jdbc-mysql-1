@@ -1,4 +1,4 @@
-package dao.interfaces;
+package repositories.interfaces;
 
 import domain.departament.Departament;
 import domain.departament.Level;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface EmployeeDAO extends EntityDAO<Employee> {
+public interface EmployeeRepository extends EntityRepository<Employee> {
     void saveJobsInformation(Connection c, long id, Map<Departament, Map<Level, BigDecimal>> dls);
 
     void saveNormalEmployee(NormalEmployee ne);
