@@ -1,8 +1,10 @@
 package services;
 
 import domain.user.User;
+import dto.user.UserDTO;
+import exceptions.DbConnectionException;
 import exceptions.UserException;
-import mappers.UserMapper;
+import mappers.interfaces.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,20 +24,16 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-
     @Mock
     private UserRepository repository;
     @Mock
-    private UserMapper mapper;
+    private Mapper<UserDTO, User> mapper;
     @InjectMocks
     private UserService service;
-
-    private User mockUser;
 
     @Nested
     @DisplayName("** Validate methods **")
     class ValidateTests {
-
         @Test
         @DisplayName("Should be throw NPEException when the username is null")
         void givenValidateUsername_whenUsernameIsNull_thenThrowNullPointerException() {
@@ -89,7 +87,7 @@ class UserServiceTest {
         void givenValidatePassword_whenPasswordNotContainsAtLeast1SpecialSymbol_thenThrowUserException() {
 
             final String password = "Without special char";
-            UserException e = assertThrows(UserException.class,
+            final UserException e = assertThrows(UserException.class,
                     () -> service.validatePassword(password));
 
             final String expectedMessage = String.format("Password %s not contains at least 1 special character!", password);
@@ -99,6 +97,7 @@ class UserServiceTest {
         //Generate with GPT
         @ParameterizedTest
         @ValueSource(strings = {"senha@123", "usuário#2023", "pass_word$", "email@example.com", "Nome&Sobrenome", "!Bem-vindo!", "chave*valor", "endereço@home", "nome%completo", "telefone(123)456-7890"})
+        @DisplayName("Should be continue when the password contains any special symbol")
         void givenValidatePassword_whenPasswordContainsSpecialSymbol_thenNotThrowException(String password) {
             assertNotNull(password);
             assertDoesNotThrow(() -> service.validatePassword(password));
@@ -109,6 +108,7 @@ class UserServiceTest {
     @Nested
     class FindUsernameTests {
         private String username;
+
         @BeforeEach
         void setUp() {
             username = "Any username";
@@ -141,42 +141,113 @@ class UserServiceTest {
     }
 
     @Nested
+    @DisplayName("** Find user methods **")
     class FindUserTests {
-        //Todo
+        private String username, password;
+
+        @BeforeEach
+        void setUp() {
+            username = "any";
+            password = "any";
+        }
+
+        @Test
+        @DisplayName("Should be throw Null Pointer Exception when the username is null")
+        void givenFindUser_whenUsernameIsNull_thenThrowNPEException() {
+
+            final NullPointerException e = assertThrows(NullPointerException.class,
+                    () -> service.findUser(null, password));
+
+            String expectedMessage = "Username can´t be null!";
+            assertEquals(expectedMessage, e.getMessage());
+        }
+
+        @Test
+        @DisplayName("Should be throw Null Pointer Exception when the password is null")
+        void givenFindUser_whenPasswordIsNull_thenThrowNPEException() {
+
+            final NullPointerException e = assertThrows(NullPointerException.class,
+                    () -> service.findUser(username, null));
+
+            String expectedMessage = "Password can´t be null!";
+            assertEquals(expectedMessage, e.getMessage());
+        }
+
+
+        @Test
+        @DisplayName("Should be return an user with id when the username and password already exists")
+        void givenFindUser_whenUserIsFound_thenReturnUser() {
+
+            final UserDTO dto = new UserDTO(1L, username, password);
+            final User userExpected = new User(username, password);
+
+            when(repository.findUser(username, password)).thenReturn(Optional.of(dto));
+
+            when(mapper.dtoToEntity(dto)).thenReturn(userExpected);
+            //Mapper action
+            userExpected.setId(dto.getId());
+
+            assertEquals(userExpected, service.findUser(username, password));
+            assertEquals(dto.getId(), userExpected.getId());
+
+            verify(repository).findUser(username, password);
+            verify(mapper).dtoToEntity(dto);
+
+        }
+
+        @Test
+        @DisplayName("Should be throw User Exception when the user not exists")
+        void givenFindUser_whenUserNotExists_thenThrowUserException() {
+
+            when(repository.findUser(username, password)).thenReturn(Optional.empty());
+
+            final UserException e = assertThrows(UserException.class,
+                    () -> service.findUser(username, password));
+
+            final String expectedMessage = String.format("User %s not found!", username);
+            assertEquals(expectedMessage, e.getMessage());
+
+            verify(repository).findUser(username, password);
+
+        }
+
     }
 
     @Nested
     @DisplayName("** Save user methods **")
     class SaveUserTests {
 
-        @DisplayName("Should be throw NullPointerException when the user is null")
         @Test
-        void givenSaveUser_whenUserIsNull_thenThrowNPEException() {
+        @DisplayName("Should be Throw Null Pointer Exception when the user is null")
+        void givenSaveUser_whenUserIsNull_thenThrowNPEEXception() {
 
-            NullPointerException e = assertThrows(NullPointerException.class,
+            final NullPointerException e = assertThrows(NullPointerException.class,
                     () -> service.saveUser(null));
 
-            String message = "User can´t be null!";
-            assertEquals(message, e.getMessage());
+            final String expectedMessage = "User can´t be null!";
+            assertEquals(expectedMessage, e.getMessage());
 
         }
 
-        @DisplayName("Should be set id in user when the user is correctly saved")
         @Test
-        void givenSaveUser_whenUserIsSaved_thenSetIdInUser() {
+        @DisplayName("Should be set id in the saved user")
+        void givenSaveUser_whenUserIsSaved_thenSetIdInTheUser() {
 
             final User user = new User("any", "any");
 
-            doAnswer(invocation -> {
-                User userSaved = invocation.getArgument(0);
-                userSaved.setId(1L);
-                return null;
-            }).when(repository).save(user);
+            doAnswer(input -> {
+                        User userSaved = input.getArgument(0);
+                        userSaved.setId(1L);
+                        return null;
+                    }
+            ).when(repository).save(user);
+
 
             service.saveUser(user);
             assertNotNull(user.getId());
 
             verify(repository).save(user);
+
         }
 
     }
@@ -185,23 +256,55 @@ class UserServiceTest {
     @DisplayName("** Delete user methods **")
     class DeleteUserTests {
 
-        @DisplayName("Should be throw NPE Exception when user is null")
-        @Test
-        void givenDeleteUser_whenUserIsNull_thenThrowNPEException() {
+        private User user;
 
-            mockUser = null;
-            NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.deleteUser(mockUser));
-
-            String message = "User can´t be null!";
-            assertEquals(message, e.getMessage());
+        @BeforeEach
+        void setUp() {
+            user = new User("any", "any");
+            user.setId(1L);
         }
 
-        @DisplayName("Should be return user id when user has been deleted")
         @Test
-        void givenDeleteUser_whenUserHasBeenDeleted_thenReturnId() {
-            mockUser = service.findUser(mockUser.getUsername(), mockUser.getPassword());
-            assertEquals(mockUser.getId(), service.deleteUser(mockUser));
+        @DisplayName("Should be throw Null Pointer Exception when the user is null")
+        void givenDeleteUser_whenUserIsNull_thenThrowNPEException() {
+
+            final NullPointerException e = assertThrows(NullPointerException.class,
+                    () -> service.deleteUser(null));
+
+            final String expectedMessage = "User can´t be null!";
+            assertEquals(expectedMessage, e.getMessage());
+        }
+
+        @Test
+        @DisplayName("Should be return the id of user deleted when user was correctly deleted")
+        void givenDeleteUser_whenUserHasBeenDeleted_thenReturnTheUserId() {
+
+            final int idIntExpected = Integer.parseInt(String.valueOf(
+                    user.getId()
+            ));
+
+            when(repository.deleteById(user.getId())).thenReturn(idIntExpected);
+
+            assertEquals(idIntExpected, service.deleteUser(user));
+
+            verify(repository).deleteById(user.getId());
+        }
+
+
+        @Test
+        @DisplayName("Should be throw User Exception when the id is too long to converted in integer (workaround)")
+        void givenDeleteUser_whenUserHasBeenDeletedButTheIdIsTooLong_thenThrowUserException() {
+
+            final NumberFormatException expectedCause = new NumberFormatException();
+            when(repository.deleteById(user.getId())).thenThrow(expectedCause);
+
+            final UserException e = assertThrows(UserException.class,
+                    () -> service.deleteUser(user));
+            assertEquals(expectedCause, e.getCause());
+
+            final String expectedMessage = String.format("Id %d is too long to convert, undo workaround :)", user.getId());
+            assertEquals(expectedMessage, e.getMessage());
+
         }
     }
 
