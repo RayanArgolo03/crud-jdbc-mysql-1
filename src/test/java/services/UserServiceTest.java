@@ -234,17 +234,18 @@ class UserServiceTest {
         void givenSaveUser_whenUserIsSaved_thenSetIdInTheUser() {
 
             final User user = new User("any", "any");
+            final Long expectedId = 1L;
 
             doAnswer(input -> {
                         User userSaved = input.getArgument(0);
-                        userSaved.setId(1L);
+                        userSaved.setId(expectedId);
                         return null;
                     }
             ).when(repository).save(user);
 
 
             service.saveUser(user);
-            assertNotNull(user.getId());
+            assertEquals(expectedId, user.getId());
 
             verify(repository).save(user);
 
