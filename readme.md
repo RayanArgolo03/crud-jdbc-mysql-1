@@ -11,6 +11,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 - JDBC
 - Junit5
 - Mockito
+- Docker (Container MySQL)
 
 ## Design Patterns Utilizados
 - DAO / Repository e Impl / Segregação de interfaces
