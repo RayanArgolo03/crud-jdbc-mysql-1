@@ -25,19 +25,21 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 <img src='https://github.com/RayanArgolo03/crud-jdbc-mysql-1/assets/113947677/86a378c2-a4ae-4909-811a-c25e738eb690' width='300' height='600'></img>
 
 # Como usar o aplicativo?
-## Requisitos
+## Inicialização com Docker Compose
 
-0. Certifique-se de ter o `JDK` a partir da versão 17 e o `MySQL` baixados em sua máquina - o MySQL também pode ser incluído através de uma imagem Docker
+0. Faça um fork ou clone o programa
 
-1. Faça um fork do projeto ou clone-o ou baixe-o em formato `.zip`
+1. Certifique-se de ter o Docker instalado em sua máquina.
 
-2. Todas as bibliotecas utilizadas podem ser alteradas diretamente no arquivo `pom.xml`
-<img src='https://github.com/RayanArgolo03/crud-jdbc-mysql-1/assets/113947677/e9d105ac-91e8-433b-b6d5-0ac4a786a1f2' width='600' height='400'></img>
-</br>
+2. Abra o terminal de sua IDE
 
-3. No seu cliente `MySQL`, rode o código do arquivo `.sql` da pasta `scripts` para replicar a estrutura do banco de dados.
-<img src='https://github.com/RayanArgolo03/crud-jdbc-mysql-1/assets/113947677/c2007c2a-c5df-4b6f-bd66-722dc7f754df' width='600' height='350'></img>
-</br>
+3. Execute o seguinte comando para iniciar o MySQL consumido pelo app:
+
+   ```
+   Inicializa database direto no container
+   docker-compose up -d
+    ```
+4. Utilize o app pela IDE e divirta-se :)
 
 ## Diagrama Entidade Relacional
 
