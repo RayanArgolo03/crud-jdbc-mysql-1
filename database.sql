@@ -31,9 +31,9 @@ INSERT INTO `employees` (`id`, `name`, `birth_date`, `age`, `hire_date`, `docume
 (52, 'Normal1', '2024-05-22', 19, '2024-05-22 08:58:03', '17162532'),
 (61, 'Hireee', '2000-12-10', 99, '2024-05-28 08:47:18', '1918261652');
 
--- Table structure for table `departaments`
-DROP TABLE IF EXISTS `departaments`;
-CREATE TABLE `departaments` (
+-- Table structure for table `departments`
+DROP TABLE IF EXISTS `departments`;
+CREATE TABLE `departments` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -42,8 +42,8 @@ CREATE TABLE `departaments` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table `departaments`
-INSERT INTO `departaments` (`id`, `name`, `creation_date`) VALUES
+-- Dumping data for table `departments`
+INSERT INTO `departments` (`id`, `name`, `creation_date`) VALUES
 (24, 'Sales', '2024-05-01 15:08:56'),
 (27, 'Management', '2024-05-01 15:55:12');
 
@@ -55,7 +55,7 @@ CREATE TABLE `departaments_has_employees` (
   `level` enum('JUNIOR','MID','SENIOR') DEFAULT NULL,
   `salary` decimal(15,2) unsigned NOT NULL,
   PRIMARY KEY (`id_departament`, `id_employee`),
-  CONSTRAINT `fk_departments_has_employees_departments` FOREIGN KEY (`id_departament`) REFERENCES `departaments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_departments_has_employees_departments` FOREIGN KEY (`id_departament`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_departments_has_employees_employees` FOREIGN KEY (`id_employee`) REFERENCES `employees` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
