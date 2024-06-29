@@ -29,11 +29,11 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 
 0. Faça um fork ou clone o programa
 
-1. Certifique-se de ter o Docker instalado em sua máquina.
+1. Certifique-se de ter o Docker instalado em sua máquina e inicie-o
 
 2. Abra o terminal de sua IDE
 
-3. Execute o seguinte comando para iniciar o MySQL consumido pelo app:
+3. Execute o seguinte comando no terminal para iniciar o MySQL e seu database consumidos pelo app:
 
    ```
    Inicializa database direto no container
