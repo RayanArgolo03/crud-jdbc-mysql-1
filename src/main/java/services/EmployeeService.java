@@ -1,8 +1,8 @@
 package services;
 
-import dao.interfaces.EmployeeDAO;
-import domain.departament.Departament;
-import domain.departament.Level;
+
+import domain.department.Department;
+import domain.department.Level;
 import domain.employee.Employee;
 import domain.employee.NormalEmployee;
 import domain.employee.SuperiorEmployee;
@@ -13,18 +13,16 @@ import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeType;
 import enums.employee.EmployeeUpdateOption;
-import enums.menu.DefaultMessage;
 import enums.menu.YesOrNo;
+import exceptions.DbConnectionException;
 import exceptions.EmployeeException;
 import factory.EmployeeBuilderFactory;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import mappers.NormalEmployeeMapper;
-import mappers.SuperiorEmployeeMapper;
+import mappers.interfaces.Mapper;
+import repositories.interfaces.EmployeeRepository;
 import utils.EnumListUtils;
 import utils.FormatterUtils;
-import utils.PrintEnumsUtils;
-import utils.ReaderUtils;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -35,46 +33,24 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-;
+import static utils.ReaderUtils.*;
 
 @FieldDefaults(makeFinal = true)
 @AllArgsConstructor
 public final class EmployeeService {
 
-    private NormalEmployeeMapper normalEmployeeMapper;
-    private SuperiorEmployeeMapper superiorEmployeeMapper;
-    private EmployeeDAO dao;
-
-    public String receiveInputString(final String title) {
-        return ReaderUtils.readString(title);
-    }
-
-    public int receiveInputInteger(final String title) {
-        return ReaderUtils.readInt(title);
-    }
-
-    public long receiveInputLong(final String title) {
-        return ReaderUtils.readLong(title);
-    }
-
-    public <T extends Enum<T>> T receiveEnumElement(final String title, final Class<T> enumClass) {
-        return ReaderUtils.readElement(title,
-                EnumListUtils.getEnumList(enumClass));
-    }
-
-    public <T> T chooseElement(final int choose, final List<T> list) {
-        if (choose < 0 || choose > list.size() - 1) throw new EmployeeException("Invalid choose!");
-        return list.get(choose);
-    }
+    private Mapper<NormalEmployeeDTO, NormalEmployee> normalMapper;
+    private Mapper<SuperiorEmployeeDTO, SuperiorEmployee> superiorMapper;
+    private EmployeeRepository repository;
 
     public String validateAndFormatName(final String name) {
 
         Objects.requireNonNull(name, "Name can´t be null!");
 
-        if (name.length() < 3) throw new EmployeeException("Name with less than three letters!");
+        if (name.length() < 3) throw new EmployeeException(String.format("%s is a small name!", name));
 
         if (!name.matches("^[A-Za-z]+((\\s)?((['\\-.])?([A-Za-z])+))*$")) {
-            throw new EmployeeException("Name contains special characters!");
+            throw new EmployeeException(String.format("%s contains special characters!", name));
         }
 
         return FormatterUtils.formatName(name);
@@ -86,7 +62,7 @@ public final class EmployeeService {
         Objects.requireNonNull(document, "Document can´t be null!");
 
         if (!document.matches("(^\\d{3}\\x2E\\d{3}\\x2E\\d{3}\\x2D\\d{2}$)")) {
-            throw new EmployeeException("Invalid document!");
+            throw new EmployeeException(String.format("Invalid document: %s does not match the pattern!", document));
         }
 
     }
@@ -96,77 +72,72 @@ public final class EmployeeService {
         try {
             return LocalDate.parse(dateInString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         } catch (DateTimeParseException e) {
-            throw new EmployeeException(String.format("Invalid date! %s does not meet the pattern dd/MM/yyyy!", dateInString));
+            throw new EmployeeException(String.format("Invalid date! %s does not match the pattern dd/MM/yyyy!", dateInString), e);
         }
     }
 
+    public BigDecimal validateAndFormatSalary(final String salaryInString) {
+
+        Objects.requireNonNull(salaryInString, "Salary can´t be null!");
+
+        if (!salaryInString.matches("^[0-9]+([.,][0-9]{1,2})?$")) {
+            throw new EmployeeException(String.format("%s does not match the pattern!", salaryInString));
+        }
+
+        return new BigDecimal(FormatterUtils.formatMoney(salaryInString));
+    }
+
+
     public int generateAge(final LocalDate birthDate) {
 
-        final Period p = Period.between(birthDate, LocalDate.now());
+        final Period p = birthDate.until(LocalDate.now());
 
         final int age = (p.getMonths() == 0 && p.getDays() == 0)
-                ? p.getYears()
+                ? p.getYears() //It´s aniversary
                 : p.getYears() - 1;
-
 
         if (age < 18) throw new EmployeeException("Employee has less than eighteen years!");
 
         return age;
     }
 
-    public Map<Departament, Map<Level, BigDecimal>> receiveJobsInformation(final List<Departament> departaments) {
+    public Map<Department, Map<Level, BigDecimal>> receiveJobsInformation(final List<Department> departments) {
 
-        final Map<Departament, Map<Level, BigDecimal>> dls = new HashMap<>();
-        final List<Level> levels = EnumListUtils.getEnumList(Level.class);
+        final Map<Department, Map<Level, BigDecimal>> dls = new HashMap<>();
 
         YesOrNo yesOrNo;
         do {
-            if (departaments.isEmpty()) {
-                System.out.println("There are no more departaments to allocate!");
+            if (departments.isEmpty()) {
+                System.out.println("There are no more departments to allocate!");
                 break;
             }
 
-            departaments.forEach(d -> System.out.printf("%d - %s \n", departaments.indexOf(d), d.getName()));
-            int choose = receiveInputInteger("departament option");
-            Departament departament = chooseElement(choose, departaments);
+            Department department = readElement("department option", departments);
 
-            System.out.printf("%s %s \n", DefaultMessage.ENTER_WITH.getValue(), "your level option:");
-            PrintEnumsUtils.printElements(levels);
-            choose = receiveInputInteger("level option");
-            Level level = chooseElement(choose, levels);
+            Level level = readElement("level option", EnumListUtils.getEnumList(Level.class));
 
-            String salaryInString = receiveInputString("employee salary (only numbers and decimal values separated by dot or comma");
+            String salaryInString = readString("employee salary (only numbers and decimal values separated by dot or comma");
             BigDecimal salary = validateAndFormatSalary(salaryInString);
-            printSalary(salary);
+            System.out.printf("\n Salary: %s\n", NumberFormat.getCurrencyInstance().format(salary));
 
             //Hire action
-            dls.put(departament, Map.of(level, salary));
+            dls.put(department, Map.of(level, salary));
 
-            //Removing departament of hiring
-            departaments.remove(departament);
+            //Removing department of hiring
+            departments.remove(department);
 
-            yesOrNo = receiveEnumElement("Do you want hire this employee for other departaments? ",
-                    YesOrNo.class);
+            yesOrNo = readElement("Do you want hire this employee for other departments? ",
+                    EnumListUtils.getEnumList(YesOrNo.class));
 
         } while (yesOrNo != YesOrNo.NO);
 
         return dls;
     }
 
-    //Comparing current and new value in update method
-    public boolean validStringToUpdate(final String s1, final String s2) {
-        return !s1.equalsIgnoreCase(s2);
-    }
-
-    public boolean validSalaryToUpdate(final BigDecimal oldSalary, final BigDecimal newSalary) {
-        return oldSalary.compareTo(newSalary) != 0;
-    }
-
-
     public Employee createEmployee(final String name, final String document,
                                    final LocalDate birthDate,
                                    final int age,
-                                   final Map<Departament, Map<Level, BigDecimal>> dls,
+                                   final Map<Department, Map<Level, BigDecimal>> dls,
                                    final EmployeeType type) {
 
         Objects.requireNonNull(type, "Employee type can´t be null!");
@@ -176,7 +147,7 @@ public final class EmployeeService {
                 .document(document)
                 .birthDate(birthDate)
                 .age(age)
-                .departamentsAndLevelsAndSalaries(dls)
+                .departmentsAndLevelsAndSalaries(dls)
                 .build();
     }
 
@@ -184,12 +155,9 @@ public final class EmployeeService {
 
         if (employee instanceof NormalEmployee ne) {
             String title = String.format("Employee %s has faculty?", ne.getName());
-            defineHasFaculty(ne, receiveEnumElement(title, YesOrNo.class));
-        }
-
-        //Only two types
-        else if (employee instanceof SuperiorEmployee se) {
-            defineWorkExperience(se, se.getAge(), receiveInputInteger("Work experience"));
+            defineHasFaculty(ne, readElement(title, EnumListUtils.getEnumList(YesOrNo.class)));
+        } else if (employee instanceof SuperiorEmployee se) {
+            defineWorkExperience(se, se.getAge(), readInt("Valid Work experience (more than one year and less than the employee age)"));
         }
     }
 
@@ -197,68 +165,76 @@ public final class EmployeeService {
         if (option == YesOrNo.YES) ne.setHasFaculty(true);
     }
 
-    public void defineWorkExperience(final SuperiorEmployee ne, final int age, final int workExperience) {
+    public void defineWorkExperience(final SuperiorEmployee se, final int age, final int workExperience) {
 
         if (workExperience < 1) throw new EmployeeException("Should be has work experience!");
 
-        //:)
         if (workExperience > age) throw new EmployeeException("Did the employee work before they were born?");
 
         if (age - workExperience < 15) {
-            throw new EmployeeException("Superior Employee can´t be started work under the age of fifteen!");
+            throw new EmployeeException("Superior Employee can´t be started work under the age of fifteen! (15 years old)");
         }
 
-        ne.setWorkExperience(workExperience);
+        se.setWorkExperience(workExperience);
     }
 
     public void saveBaseEmployee(final Employee employee) {
-        dao.save(employee);
+        try {
+            repository.save(employee);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error in save: %s", e.getMessage()), e);
+        }
     }
 
     public void saveSpecificEmployee(final Employee employee) {
-        if (employee instanceof NormalEmployee ne) dao.saveNormalEmployee(ne);
-        else if (employee instanceof SuperiorEmployee se) dao.saveSuperiorEmployee(se);
+        if (employee instanceof NormalEmployee ne) repository.saveNormalEmployee(ne);
+        else if (employee instanceof SuperiorEmployee se) repository.saveSuperiorEmployee(se);
+    }
+
+
+    public boolean validSalaryToUpdate(final BigDecimal oldSalary, final BigDecimal newSalary) {
+        return oldSalary.compareTo(newSalary) != 0;
     }
 
     public List<Employee> findByOption(final EmployeeFindOption option) {
 
         return switch (option) {
             case ID -> {
-                final long employeeId = receiveInputLong("employee id");
-                yield Collections.singletonList(findById(employeeId));
+                final long employeeId = readLong("employee id");
+                yield findById(employeeId);
             }
             case NAME -> {
-                final String name = receiveInputString("name");
+                final String name = readString("name");
                 yield findByName(name);
             }
-            case AGE -> {
-                final int age = receiveInputInteger("age");
-                yield findByAge(age);
-            }
             case DOCUMENT -> {
-                final String document = receiveInputString("document");
-                yield Collections.singletonList(findByDocument(document));
+                final String document = readString("document");
+                yield findByDocument(document);
+            }
+            case AGE -> {
+                final int age = readInt("age");
+                yield findByAge(age);
             }
             case HIRE_DATE -> {
                 final LocalDate hireDateWithoutTime = parseAndValidateDate(
-                        receiveInputString("hire date")
+                        readString("hire date")
                 );
                 yield findByHireDate(hireDateWithoutTime);
             }
         };
     }
 
-    public Employee findById(final long employeeId) {
-        return dao.findById(employeeId)
+    public List<Employee> findById(final long employeeId) {
+        return Collections.singletonList(repository.findById(employeeId)
                 .map(this::mappperToSpecificEntity)
-                .orElseThrow(() -> new EmployeeException("Employee not found!"));
+                .orElseThrow(() -> new EmployeeException(String.format("Employee with id %d not found!", employeeId))));
     }
 
     public List<Employee> findByName(final String name) {
 
         Objects.requireNonNull(name, "Name can´t be null");
 
-        final List<EmployeeBaseDTO> list = dao.findByName(name);
+        final List<EmployeeBaseDTO> list = repository.findByName(name);
         if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by name %s!", name));
 
         return list.stream()
@@ -266,230 +242,197 @@ public final class EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    public List<Employee> findByDocument(final String document) {
+
+        Objects.requireNonNull(document, "Document can´t be null!");
+
+        return Collections.singletonList(repository.findByDocument(document)
+                .map(this::mappperToSpecificEntity)
+                .orElseThrow(() -> new EmployeeException(String.format("Employee not found by document %s!", document))));
+    }
+
     public List<Employee> findByAge(final int age) {
 
-        final List<EmployeeBaseDTO> list = dao.findByAge(age);
-        if (list.isEmpty()) throw new EmployeeException("Employees not found!");
+        final List<EmployeeBaseDTO> list = repository.findByAge(age);
+        if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by age %d!", age));
 
         return list.stream()
                 .map(this::mappperToSpecificEntity)
                 .collect(Collectors.toList());
-    }
-
-    public Employee findByDocument(final String document) {
-
-        Objects.requireNonNull(document, "Document can´t be null!");
-
-        return dao.findByDocument(document)
-                .map(this::mappperToSpecificEntity)
-                .orElseThrow(() -> new EmployeeException(String.format("Employee with %s document not found!", document)));
     }
 
     public List<Employee> findByHireDate(final LocalDate hireDateWithoutTime) {
 
-        final List<EmployeeBaseDTO> list = dao.findByHireDate(hireDateWithoutTime);
+        final List<EmployeeBaseDTO> list = repository.findByHireDate(hireDateWithoutTime);
 
-        if (list.isEmpty()){
-            throw new EmployeeException(String.format("Employees not found by hire date %s!", hireDateWithoutTime));
+        if (list.isEmpty()) {
+            throw new EmployeeException(String.format("Employees not found by hire date %s!", DateTimeFormatter.ofPattern("dd/MM/yyyy").format(hireDateWithoutTime)));
         }
 
         return list.stream()
                 .map(this::mappperToSpecificEntity)
                 .collect(Collectors.toList());
-    }
-
-    private void printDls(final Map<Departament, Map<Level, BigDecimal>> dls) {
-        for (Map.Entry<Departament, Map<Level, BigDecimal>> map : dls.entrySet()) {
-            Departament d = map.getKey();
-            Level l = map.getValue().keySet().stream().findFirst().get();
-            BigDecimal s = map.getValue().get(l);
-            System.out.printf("Departament %sWith Level %s and salary %s \n", d, l, printSalary(s));
-        }
-    }
-
-
-    public BigDecimal validateAndFormatSalary(final String salaryInString) {
-
-        Objects.requireNonNull(salaryInString, "Salary can´t be null!");
-
-        if (!salaryInString.matches("^[0-9]+([.,][0-9]{1,2})?$")) {
-            throw new EmployeeException("Invalid salary format!");
-        }
-
-        return new BigDecimal(FormatterUtils.formatMoney(salaryInString));
-    }
-
-    private String printSalary(final BigDecimal salary) {
-        System.out.print("Salary: ");
-        return NumberFormat.getCurrencyInstance().format(salary);
-    }
-
-    public Employee receiveEmployee(final List<Employee> employeesFound) {
-
-        System.out.println("More than one employee retuning! Choose one to update..");
-
-        System.out.printf("%s %s:", DefaultMessage.ENTER_WITH.getValue(), "your option: ");
-
-        int option = receiveInputInteger("employee option");
-//        if (!validOption(option, employeesFound.size())) {
-//            throw new EmployeeException(DefaultMessage.INVALID.getValue());
-//        }
-
-        return employeesFound.get(option);
     }
 
     public void updateByOption(final EmployeeUpdateOption option, final Employee employee) {
 
         switch (option) {
             case NAME -> {
-                final String newName = receiveInputString("new name");
+                final String newName = readString("new name");
                 updateName(employee, newName);
             }
             case DOCUMENT -> {
-                final String newDocument = receiveInputString("new document");
+                final String newDocument = readString("new document");
                 updateDocument(employee, newDocument);
             }
-
             case SENIORITY_OF_WORK -> {
-                final Departament departament = null;
-                updateLevel(employee, departament);
+
+                final Department department = readElement(
+                        "Choose the department and level you want!",
+                        new ArrayList<>(employee.getDepartmentsAndLevelsAndSalaries().keySet())
+                );
+
+                final Level oldLevel = new ArrayList<>(employee.getDepartmentsAndLevelsAndSalaries().get(department).keySet()).get(0);
+
+                final List<Level> levelsWithoutOld = EnumListUtils.getEnumList(Level.class);
+                levelsWithoutOld.remove(oldLevel);
+
+                final Level newLevel = readElement("New level!", levelsWithoutOld);
+
+                updateLevel(employee, department, newLevel, oldLevel);
             }
             case SALARY_OF_WORK -> {
-                final Departament departament = null;
-                updateSalary(employee, departament);
+
+                final Department department = readElement(
+                        "Choose the department and salary you want!",
+                        new ArrayList<>(employee.getDepartmentsAndLevelsAndSalaries().keySet())
+                );
+
+                final BigDecimal oldSalary = employee.getDepartmentsAndLevelsAndSalaries()
+                        .get(department)
+                        .values().stream()
+                        .findFirst()
+                        .get();
+
+                //Validate null salary here
+                final String salaryInString = readString(String.format("new salary (different from the current salary, %s)", oldSalary));
+                final BigDecimal newSalary = validateAndFormatSalary(salaryInString);
+
+                updateSalary(employee, department, newSalary, oldSalary);
             }
         }
-
     }
 
-    private void updateName(final Employee employee, String newName) {
+    public void updateName(final Employee employee, final String newName) {
 
+        Objects.requireNonNull(newName, "New name can´t be null!");
 
-        if (!validStringToUpdate(newName, employee.getName())) {
-            throw new EmployeeException("Name can´t be equals to current name!");
+        if (newName.equals(employee.getName())) {
+            throw new EmployeeException(String.format("Name %s can´t be equals to current name!", newName));
         }
 
-        dao.updateName(employee, newName);
-        employee.setName(newName);
+        repository.updateName(employee, newName);
+        System.out.println("Name updated!");
     }
 
-    private void updateDocument(final Employee employee, final String newDocument) {
+    public void updateDocument(final Employee employee, final String newDocument) {
 
+        Objects.requireNonNull(newDocument, "New document can´t be null!");
 
-        if (!validStringToUpdate(newDocument, employee.getDocument())) {
-            throw new EmployeeException("Document can´t be equals to current document!");
+        if (newDocument.equals(employee.getDocument())) {
+            throw new EmployeeException(String.format("Document %s can´t be equals to current document!", newDocument));
         }
 
-        dao.updateDocument(employee, newDocument);
-        employee.setDocument(newDocument);
+        repository.updateDocument(employee, newDocument);
+        System.out.println("Document updated!");
     }
 
-    private void updateLevel(final Employee employee, final Departament departament) {
-
-        final Level oldLevel = employee.getDepartamentsAndLevelsAndSalaries()
-                .get(departament).keySet().stream()
-                .findFirst()
-                .get();
-
-        final List<Level> levelsWithoutOld = EnumListUtils.getEnumList(Level.class);
-        levelsWithoutOld.remove(oldLevel);
-
-        System.out.println("Receives new level..");
-        final Level newLevel = chooseElement(1, levelsWithoutOld);
-
-        dao.updateLevel(employee, departament, newLevel);
-
-        //Updates level in entity after database table update
-        final BigDecimal currentSalary = employee.getDepartamentsAndLevelsAndSalaries()
-                .get(departament)
-                .get(oldLevel);
-
-        employee.getDepartamentsAndLevelsAndSalaries()
-                .put(departament, Map.of(newLevel, currentSalary));
+    public void updateLevel(final Employee employee, final Department department, final Level newLevel, final Level oldLevel) {
+        Objects.requireNonNull(newLevel, "New level can´t be null!");
+        repository.updateLevel(employee, department, newLevel, oldLevel);
     }
 
-    private void updateSalary(final Employee employee, final Departament departament) {
-
-        final BigDecimal oldSalary = employee.getDepartamentsAndLevelsAndSalaries()
-                .get(departament)
-                .values().stream()
-                .findFirst()
-                .get();
-
-        final BigDecimal newSalary = new BigDecimal(1);
-
-        if (!validSalaryToUpdate(oldSalary, newSalary)) {
-            throw new EmployeeException("Salary can´t be equals to current salary!");
-        }
-
-        dao.updateSalary(employee, departament, newSalary);
-
-        //Updates salary in entity after database table update - Using optional toArray
-        final Level currentLevel = employee.getDepartamentsAndLevelsAndSalaries()
-                .get(departament)
-                .keySet()
-                .toArray(Level[]::new)[0];
-
-        employee.getDepartamentsAndLevelsAndSalaries()
-                .put(departament, Map.of(currentLevel, newSalary));
-
+    public void updateSalary(final Employee employee, final Department department, final BigDecimal newSalary, final BigDecimal oldSalary) {
+        if (oldSalary.equals(newSalary)) throw new EmployeeException("Salary can´t be equals to current salary!");
+        repository.updateSalary(employee, department, newSalary, oldSalary);
     }
 
-    public int deleteByOption(final EmployeeDeleteOption option,
-                              final List<Departament> departaments) {
+
+    public int deleteByOption(final EmployeeDeleteOption option, final List<Department> departments) {
 
         return switch (option) {
             case ID -> {
-                final long id = receiveInputLong("id");
+                final long id = readLong("id");
                 yield deleteById(id);
             }
             case NAME -> {
-                final String name = receiveInputString("name");
+                final String name = readString("name");
                 yield deleteByName(name);
             }
             case DOCUMENT -> {
-                final String document = receiveInputString("document");
+                final String document = readString("document");
                 yield deleteByDocument(document);
             }
             case HIRE_DATE -> {
                 final LocalDate hireDateWithoutTime = parseAndValidateDate(
-                        receiveInputString("hire date")
+                        readString("hire date")
                 );
                 yield deleteByHireDate(hireDateWithoutTime);
             }
-            case DEPARTAMENT -> {
-                final Departament departament = chooseElement(1, List.of());
-                yield deleteByDepartament(departament);
+            case DEPARTMENT -> {
+                final Department department = readElement("department", departments);
+                yield deleteByDepartment(department);
             }
         };
     }
 
-    private int deleteById(final long id) {
-        return dao.deleteById(id);
+   //Todo continue
+    public int deleteById(final long id) {
+        try {
+            return repository.deleteById(id);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+        }
     }
 
-    private int deleteByName(final String name) {
-        return dao.deleteByName(name);
+    public int deleteByName(final String name) {
+        try {
+            return repository.deleteByName(name);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+        }
     }
 
-    private int deleteByDocument(final String document) {
-        return dao.deleteByDocument(document);
+    public int deleteByDocument(final String document) {
+        try {
+            return repository.deleteByDocument(document);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+        }
     }
 
-    private int deleteByHireDate(final LocalDate hireDateWithoutTime) {
-        return dao.deleteByHireDate(hireDateWithoutTime);
+    public int deleteByHireDate(final LocalDate hireDateWithoutTime) {
+        try {
+            return repository.deleteByHireDate(hireDateWithoutTime);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+        }
     }
 
-    private int deleteByDepartament(final Departament departament) {
-        return dao.deleteByDepartament(departament);
+    public int deleteByDepartment(final Department department) {
+        try {
+            return repository.deleteByDepartment(department);
+        } catch (DbConnectionException e) {
+            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+        }
     }
 
     private Employee mappperToSpecificEntity(final EmployeeBaseDTO dto) {
 
         if (dto instanceof SuperiorEmployeeDTO sed) {
-            return superiorEmployeeMapper.dtoToEntity(sed);
+            return superiorMapper.dtoToEntity(sed);
         } else if (dto instanceof NormalEmployeeDTO ned) {
-            return normalEmployeeMapper.dtoToEntity(ned);
+            return normalMapper.dtoToEntity(ned);
         }
 
         throw new EmployeeException("Invalid type");

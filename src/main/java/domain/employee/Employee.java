@@ -1,7 +1,7 @@
 package domain.employee;
 
-import domain.departament.Departament;
-import domain.departament.Level;
+import domain.department.Department;
+import domain.department.Level;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -26,7 +26,7 @@ public abstract class Employee {
     private String document;
     private final LocalDate birthDate;
     private int age;
-    private final Map<Departament, Map<Level, BigDecimal>> departamentsAndLevelsAndSalaries;
+    private final Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries;
     private final LocalDateTime hireDate;
     private LocalDateTime lastUpdateDate;
 
@@ -39,11 +39,11 @@ public abstract class Employee {
                 .append("With document ").append(document).append("\n");
 
         sb.append("Work informations: ").append("\n");
-        for (Departament d : departamentsAndLevelsAndSalaries.keySet()) {
+        for (Department d : departmentsAndLevelsAndSalaries.keySet()) {
             sb.append("Departament ").append(d);
-            Level l = departamentsAndLevelsAndSalaries.get(d).keySet().stream().findFirst().get();
+            Level l = departmentsAndLevelsAndSalaries.get(d).keySet().stream().findFirst().get();
             sb.append("Seniority ").append(l.name());
-            BigDecimal salary = departamentsAndLevelsAndSalaries.get(d).get(l);
+            BigDecimal salary = departmentsAndLevelsAndSalaries.get(d).get(l);
             sb.append(" receiving ").append(NumberFormat.getCurrencyInstance().format(salary));
             sb.append("\n");
         }

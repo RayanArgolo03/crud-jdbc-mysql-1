@@ -16,4 +16,6 @@ public class NormalEmployee extends Employee {
         return super.toString() + str + "\n";
     }
 
+
+
 }

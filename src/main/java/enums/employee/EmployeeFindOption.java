@@ -2,5 +2,5 @@ package enums.employee;
 
 
 public enum EmployeeFindOption {
-    ID, NAME, AGE, DOCUMENT, HIRE_DATE,
+    ID, NAME, DOCUMENT, AGE, HIRE_DATE,
 }

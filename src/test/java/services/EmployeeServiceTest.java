@@ -807,7 +807,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when employees not found by age passed")
+        @DisplayName("Should be throw EmployeeException when employees not found by hire date passed")
         void givenFindByHireDate_whenEmployeesNotFoundByHireDate_thenThrowEmployeeException() {
 
             when(repository.findByHireDate(hireDateWithoutTime)).thenReturn(Collections.emptyList());
@@ -1098,8 +1098,8 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when no have employees found by id")
-        void givenDeleteById_whenNoEmployeesFoundById_thenThrowEmployeeException() {
+        @DisplayName("Should be throw EmployeeException when employee not found by id")
+        void givenDeleteById_whenEmployeeNotFoundById_thenThrowEmployeeException() {
 
             final String expectedCauseMessage = String.format("No employees found by id %d, nobody sacked!", id);
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).deleteById(id);
@@ -1117,7 +1117,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return 1 when employee has been deleted by name, unique")
+        @DisplayName("Should be return 1 when employee has been deleted by id")
         void givenDeleteById_whenEmployeeHasBeenDeleted_thenReturnOne() {
             when(repository.deleteById(1)).thenReturn(1);
             assertEquals(1, service.deleteById(id));
@@ -1138,7 +1138,7 @@ class EmployeeServiceTest {
 
         @Test
         @DisplayName("Should be throw EmployeeException when no have employees found by name")
-        void givenDeleteByName_whenNoEmployeesFoundByName_thenThrowEmployeeException() {
+        void givenDeleteByName_whenNoHasEmployeesFoundByName_thenThrowEmployeeException() {
 
             final String expectedCauseMessage = String.format("No employees found by name %s, nobody sacked!", name);
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).deleteByName(name);
@@ -1157,7 +1157,7 @@ class EmployeeServiceTest {
 
         @Test
         @DisplayName("Should be return 1 when employee has been deleted by name")
-        void givenDeleteByName_whenEmployeeHasBeenDeleted_thenReturnOne() {
+        void givenDeleteByName_whenOneEmployeeHasBeenDeletedByName_thenReturnOne() {
             when(repository.deleteByName(name)).thenReturn(1);
             assertEquals(1, service.deleteByName(name));
             verify(repository).deleteByName(name);

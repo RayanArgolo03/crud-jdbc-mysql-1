@@ -10,6 +10,7 @@ public final class EmployeeException extends RuntimeException {
         super(message);
     }
 
+    //Use in unit tests
     public EmployeeException(String message, Throwable cause) {
         super(message, cause);
     }

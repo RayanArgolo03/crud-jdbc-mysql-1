@@ -1,6 +1,6 @@
 package enums.departament;
 
 
-public enum DepartamentFindOption {
+public enum DepartmentFindOption {
     ID, NAME, CREATION_DATE
 }

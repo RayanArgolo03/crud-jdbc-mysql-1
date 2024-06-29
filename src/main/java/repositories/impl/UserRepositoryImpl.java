@@ -22,16 +22,14 @@ public final class UserRepositoryImpl implements UserRepository {
 
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForSaveUser(c, user);
-             ResultSet rs = this.executeSaveUser(c, ps)) {
+             ResultSet rs = this.executeSaveUser(ps)) {
 
-            if (!rs.next()) throw new DbConnectionException("Addition not completed!");
-
+            rs.next();
             final Long id = rs.getLong(1);
             user.setId(id);
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
-
         }
     }
 
@@ -49,7 +47,7 @@ public final class UserRepositoryImpl implements UserRepository {
         return ps;
     }
 
-    private ResultSet executeSaveUser(final Connection c, final PreparedStatement ps)
+    private ResultSet executeSaveUser(final PreparedStatement ps)
             throws SQLException {
         ps.execute();
         return ps.getGeneratedKeys();
@@ -66,6 +64,7 @@ public final class UserRepositoryImpl implements UserRepository {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Exclusion not completed!");
 
+            //Workaround hehehe
             return Integer.parseInt(String.valueOf(id));
 
         } catch (SQLException e) {

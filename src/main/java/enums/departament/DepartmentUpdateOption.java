@@ -1,5 +1,5 @@
 package enums.departament;
 
-public enum DepartamentUpdateOption {
+public enum DepartmentUpdateOption {
     NAME
 }

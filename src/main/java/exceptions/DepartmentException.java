@@ -2,15 +2,15 @@ package exceptions;
 
 import java.io.Serial;
 
-public final class UserException extends RuntimeException {
+public final class DepartmentException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = -4930651273871488755L;
 
-    public UserException(String message) {
+    public DepartmentException(String message) {
         super(message);
     }
 
-    public UserException(String message, Throwable cause) {
+    public DepartmentException(String message, Throwable cause) {
         super(message, cause);
     }
 }

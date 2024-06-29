@@ -1,29 +1,30 @@
 package app;
 
 
-import controllers.DepartamentController;
+import controllers.DepartmentController;
 import controllers.EmployeeController;
 import controllers.UserController;
-import dao.impl.DepartamentDAOImpl;
-import dao.impl.EmployeeDAOImpl;
-import dao.impl.UserDAOImpl;
-import domain.departament.Departament;
+import domain.department.Department;
 import domain.employee.Employee;
 import domain.user.User;
-import enums.departament.DepartamentFindOption;
-import enums.departament.DepartamentMenuOption;
+import enums.departament.DepartmentFindOption;
+import enums.departament.DepartmentMenuOption;
 import enums.employee.EmployeeMenuOption;
 import enums.menu.DefaultMessage;
 import enums.menu.MenuOption;
 import enums.user.UserMenuOption;
+import exceptions.EmployeeException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import mappers.DepartamentMapper;
-import mappers.NormalEmployeeMapper;
-import mappers.SuperiorEmployeeMapper;
-import mappers.UserMapper;
-import services.DepartamentService;
+import mappers.impl.DepartmentMapperImpl;
+import mappers.impl.NormalEmployeeMapperImpl;
+import mappers.impl.SuperiorEmployeeMapperImpl;
+import mappers.impl.UserMapperImpl;
+import repositories.impl.DepartmentRepositoryImpl;
+import repositories.impl.EmployeeRepositoryImpl;
+import repositories.impl.UserRepositoryImpl;
+import services.DepartmentService;
 import services.EmployeeService;
 import services.UserService;
 import utils.EnumListUtils;
@@ -35,14 +36,14 @@ import java.util.List;
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Application {
-    private final static DepartamentController dc = new DepartamentController(
-            new DepartamentService(new DepartamentDAOImpl(), new DepartamentMapper())
+    private final static DepartmentController dc = new DepartmentController(
+            new DepartmentService(new DepartmentRepositoryImpl(), new DepartmentMapperImpl())
     );
     private final static EmployeeController ec = new EmployeeController(
-            new EmployeeService(new NormalEmployeeMapper(), new SuperiorEmployeeMapper(), new EmployeeDAOImpl())
+            new EmployeeService(new NormalEmployeeMapperImpl(), new SuperiorEmployeeMapperImpl(), new EmployeeRepositoryImpl())
     );
     private final static UserController uc = new UserController(
-            new UserService(new UserDAOImpl(), new UserMapper())
+            new UserService(new UserRepositoryImpl(), new UserMapperImpl())
     );
 
     public static void main(String[] args) {
@@ -77,8 +78,6 @@ public final class Application {
             } catch (InputMismatchException e) {
                 log.error(DefaultMessage.INVALID.getValue());
                 System.exit(0);
-            } catch (NullPointerException e) {
-                log.error("Null value! {}", e.getMessage());
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
@@ -119,15 +118,14 @@ public final class Application {
 
                         final List<Employee> employeesFound = ec.find();
 
-                        //Todo melhorar método
                         final Employee employee = ec.chooseEmployeeToUpdate(employeesFound);
-                        System.out.printf("\nEmployee before update: \n%s", employee);
+                        System.out.printf("\n Employee before update:\n %s", employee);
 
                         ec.update(employee);
-                        System.out.printf("Employee after update:\n%s", employee);
+                        System.out.printf("Employee after update:\n %s", employee);
                     }
                     case SHOW -> {
-                        ec.find().forEach(employee -> System.out.printf("\n%s \n", employee));
+                        ec.find().forEach(employee -> System.out.printf("%s \n", employee));
                     }
                     case DELETE -> {
                         System.out.println("Employees dismissed: " + ec.delete(dc.findAll()));
@@ -137,7 +135,7 @@ public final class Application {
             } catch (InputMismatchException e) {
                 log.error(DefaultMessage.INVALID.getValue());
                 System.exit(0);
-            } catch (Exception e) {
+            } catch (EmployeeException e) {
                 log.error(e.getMessage());
             }
 
@@ -150,9 +148,9 @@ public final class Application {
         do {
             try {
 
-                DepartamentMenuOption option = ReaderUtils.readElement(
+                DepartmentMenuOption option = ReaderUtils.readElement(
                         "departament option",
-                        EnumListUtils.getEnumList(DepartamentMenuOption.class)
+                        EnumListUtils.getEnumList(DepartmentMenuOption.class)
                 );
 
                 switch (option) {
@@ -161,22 +159,20 @@ public final class Application {
                     }
                     case UPDATE -> {
 
-                        final List<Departament> departamentsFound = dc.find(
-                                List.of(DepartamentFindOption.NAME, DepartamentFindOption.ID)
-                        );
+                        final List<Department> departamentsFound = dc.find();
+                        ;
 
-                        final Departament departament = dc.chooseDepartamentToUpdate(departamentsFound);
-                        System.out.printf("\nDepartament before update:\n%s", departament);
+                        final Department department = dc.chooseDepartamentToUpdate(departamentsFound);
+                        System.out.printf("\nDepartament before update:\n%s", department);
 
-                        dc.update(departament);
-                        System.out.printf("\nDepartament after update:\n%s", departament);
+                        dc.update(department);
+                        System.out.printf("\nDepartament after update:\n%s", department);
                     }
                     case SHOW -> {
-                        dc.find(EnumListUtils.getEnumList(DepartamentFindOption.class))
-                                .forEach(d -> System.out.printf("\n%s\n", d));
+                        dc.find().forEach(d -> System.out.printf("%s\n", d));
                     }
                     case DELETE -> {
-                        System.out.printf("Departament closed! %d employees dismissed!", dc.delete());
+                        System.out.printf("Departament closed! %d employees dismissed! \n", dc.delete());
                     }
                     case OUT -> {
                         return;

@@ -1,4 +1,4 @@
-package domain.departament;
+package domain.department;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @Builder
 @Getter
-public final class Departament {
+public final class Department {
     @Setter
     private Long id;
     @Setter

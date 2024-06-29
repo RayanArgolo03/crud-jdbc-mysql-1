@@ -1,9 +1,9 @@
 package repositories.impl;
 
-import repositories.interfaces.DepartamentRepository;
+import domain.department.Department;
+import repositories.interfaces.DepartmentRepository;
 import database.DbConnection;
-import domain.departament.Departament;
-import dto.departament.DepartamentDTO;
+import dto.departament.DepartmentDTO;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -17,24 +17,23 @@ import java.util.Optional;
 
 @Log4j2
 @NoArgsConstructor
-public final class DepartamentRepositoryImpl implements DepartamentRepository {
+public final class DepartmentRepositoryImpl implements DepartmentRepository {
 
     @Override
-    public void save(final Departament departament) {
+    public void save(final Department department) {
 
-        log.info("Tryning to save {} \n", departament.getName());
+        log.info("Tryning to save {} \n", department.getName());
 
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForSaveDepartament(c, departament);
+             PreparedStatement ps = this.createQueryForSaveDepartament(c, department);
              ResultSet rs = this.executeSaveDepartament(ps)) {
 
             rs.next();
             Long id = rs.getLong(1);
-            departament.setId(id);
+            department.setId(id);
 
         } catch (SQLIntegrityConstraintViolationException e) {
-            log.error("Departament has alredy exists!");
-            throw new DbConnectionException("Departament has alredy exists!");
+            throw new DbConnectionException(String.format("Departament %s already exists!", department.getName()));
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
         }
@@ -47,45 +46,45 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
         return ps.getGeneratedKeys();
     }
 
-    private PreparedStatement createQueryForSaveDepartament(final Connection c, final Departament departament)
+    private PreparedStatement createQueryForSaveDepartament(final Connection c, final Department department)
             throws SQLException {
 
         final String SAVE_DEPARTAMENT = """
-                INSERT INTO departaments(name)
+                INSERT INTO departments(name)
                 VALUES (?);
                 """;
         PreparedStatement ps = c.prepareStatement(SAVE_DEPARTAMENT, Statement.RETURN_GENERATED_KEYS);
-        ps.setString(1, departament.getName());
+        ps.setString(1, department.getName());
         return ps;
     }
 
     @Override
-    public List<DepartamentDTO> findAll() {
+    public List<DepartmentDTO> findAll() {
 
-        log.info("Tryning to find departaments.. \n");
+        log.info("Tryning to find departments.. \n");
 
-        final List<DepartamentDTO> departaments = new ArrayList<>();
+        final List<DepartmentDTO> departments = new ArrayList<>();
 
         try (Connection c = DbConnection.getConnection();
              ResultSet rs = this.executeFindAll(c)) {
 
-            while (rs.next()) departaments.add(createDepartamentDTO(rs));
+            while (rs.next()) departments.add(this.createDepartamentDTO(rs));
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
         }
 
-        return departaments;
+        return departments;
     }
 
-    private DepartamentDTO createDepartamentDTO(final ResultSet rs) throws SQLException {
+    private DepartmentDTO createDepartamentDTO(final ResultSet rs) throws SQLException {
 
         final Long id = rs.getLong("id");
         final String name = rs.getString("name");
         final LocalDateTime creationDate = rs.getObject("creation_date", LocalDateTime.class);
         final LocalDateTime lastUpdateDate = rs.getObject("last_update_date", LocalDateTime.class);
 
-        return DepartamentDTO.builder()
+        return DepartmentDTO.builder()
                 .id(id)
                 .name(name)
                 .creationDate(creationDate)
@@ -97,11 +96,11 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         return c.createStatement()
-                .executeQuery("SELECT * FROM departaments AS d");
+                .executeQuery("SELECT * FROM departments AS d");
     }
 
     @Override
-    public Optional<DepartamentDTO> findById(final long id) {
+    public Optional<DepartmentDTO> findById(final long id) {
 
         log.info("Tryning to find departament with id {} \n", id);
 
@@ -124,7 +123,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String FIND_BY_ID = """
-                SELECT * FROM departaments WHERE id = ?
+                SELECT * FROM departments WHERE id = ?
                 """;
         PreparedStatement ps = c.prepareStatement(FIND_BY_ID);
         ps.setLong(1, id);
@@ -132,11 +131,11 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
     }
 
     @Override
-    public List<DepartamentDTO> findByName(final String name) {
+    public List<DepartmentDTO> findByName(final String name) {
 
-        log.info("Tryning to find departaments with the name {} \n", name);
+        log.info("Tryning to find departments with the name {} \n", name);
 
-        final List<DepartamentDTO> list = new ArrayList<>();
+        final List<DepartmentDTO> list = new ArrayList<>();
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForFindByName(c, name);
              ResultSet rs = ps.executeQuery()) {
@@ -154,7 +153,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String FIND_BY_NAME = """
-                SELECT * FROM departaments WHERE name LIKE ?;
+                SELECT * FROM departments WHERE name LIKE ?;
                 """;
 
         PreparedStatement ps = c.prepareStatement(FIND_BY_NAME);
@@ -163,11 +162,11 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
     }
 
     @Override
-    public List<DepartamentDTO> findbyCreationDate(final LocalDate creationDateWithoutTime) {
+    public List<DepartmentDTO> findbyCreationDate(final LocalDate creationDateWithoutTime) {
 
-        log.info("Tryning to find departaments with the creation date {} \n", creationDateWithoutTime);
+        log.info("Tryning to find departments with the creation date {} \n", creationDateWithoutTime);
 
-        final List<DepartamentDTO> list = new ArrayList<>();
+        final List<DepartmentDTO> list = new ArrayList<>();
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForFindByCreationDate(c, creationDateWithoutTime);
              ResultSet rs = ps.executeQuery()) {
@@ -186,7 +185,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String FIND_BY_NAME = """
-                SELECT * FROM departaments WHERE DATE(creation_date) = ?;
+                SELECT * FROM departments WHERE DATE(creation_date) = ?;
                 """;
 
         PreparedStatement ps = c.prepareStatement(FIND_BY_NAME);
@@ -195,17 +194,20 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
     }
 
     @Override
-    public void updateName(final Departament departament, final String newName) {
+    public void updateName(final Department department, final String newName) {
 
         log.info("Tryning to update departament with the new name {} \n", newName);
 
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForUpdateName(c, newName, departament.getId())) {
+             PreparedStatement ps = this.createQueryForUpdateName(c, newName, department.getId())) {
 
-            if (ps.executeUpdate() == 0) throw new DbConnectionException("No updated departaments!");
+            if (ps.executeUpdate() == 0) throw new DbConnectionException("No updated departments!");
+
+            department.setName(newName);
+            department.setLastUpdateDate(LocalDateTime.now());
 
         } catch (SQLIntegrityConstraintViolationException e) {
-            throw new DbConnectionException("Departament has alredy exists!");
+            throw new DbConnectionException("Departament has already exists!");
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
         }
@@ -218,7 +220,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String UPDATE_BY_NAME = """
-                UPDATE departaments
+                UPDATE departments
                 SET name = ?, last_update_date = NOW()
                 WHERE id = ?
                 """;
@@ -238,13 +240,17 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
              PreparedStatement ps0 = this.createQueryForDeleteAssociatedEmployeesById(c, id);
              PreparedStatement ps1 = this.createQueryForDeleteById(c, id)) {
 
-            //Commit delete in departament id delete method
             c.setAutoCommit(false);
+
+            //Deleted associate employees
             int employeesDismissed = ps0.executeUpdate();
 
-            if (ps1.executeUpdate() == 0) throw new DbConnectionException("Error in delete by id!");
-            c.commit();
+            //Delete department
+            if (ps1.executeUpdate() == 0) {
+                throw new DbConnectionException(String.format("Department not found by id %d!", id));
+            }
 
+            c.commit();
             return employeesDismissed;
 
         } catch (SQLException e) {
@@ -273,7 +279,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String DELETE_BY_ID = """
-                DELETE FROM departaments
+                DELETE FROM departments
                 WHERE id = ?
                 """;
 
@@ -295,7 +301,10 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             c.setAutoCommit(false);
             int rowsDeleted = ps0.executeUpdate();
 
-            if (ps1.executeUpdate() == 0) throw new DbConnectionException("Error in delete by name!");
+            //Delete department
+            if (ps1.executeUpdate() == 0) {
+                throw new DbConnectionException(String.format("Departments not found by name %s!", name));
+            }
             c.commit();
 
             return rowsDeleted;
@@ -326,7 +335,7 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
             throws SQLException {
 
         final String DELETE_BY_ID = """
-                DELETE FROM departaments
+                DELETE FROM departments
                 WHERE name = ?
                 """;
 
@@ -335,9 +344,9 @@ public final class DepartamentRepositoryImpl implements DepartamentRepository {
         return ps;
     }
 
-    private DepartamentDTO buildDepartamentDTO(final ResultSet rs)
+    private DepartmentDTO buildDepartamentDTO(final ResultSet rs)
             throws SQLException {
-        return DepartamentDTO.builder()
+        return DepartmentDTO.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .creationDate(rs.getObject("creation_date", LocalDateTime.class))

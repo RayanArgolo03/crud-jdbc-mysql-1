@@ -1,6 +1,6 @@
 package enums.departament;
 
 
-public enum DepartamentDeleteOption {
+public enum DepartmentDeleteOption {
     ID, NAME
 }

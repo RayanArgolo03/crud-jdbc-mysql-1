@@ -21,7 +21,7 @@ public final class DbConnection {
         try {
             if (connection == null || connection.isClosed()) {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection("jdbc:mysql://localhost/company", loadProperties());
+                connection = DriverManager.getConnection("jdbc:mysql://localhost/company", "root", "root");
             }
 
         } catch (ClassNotFoundException e) {
@@ -33,17 +33,4 @@ public final class DbConnection {
         return connection;
     }
 
-    private static Properties loadProperties() {
-
-        try (FileInputStream inputStream = new FileInputStream("db.properties")) {
-
-            final Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties;
-
-        } catch (IOException e) {
-            throw new DbConnectionException("Error! " + e.getMessage());
-        }
-
-    }
 }

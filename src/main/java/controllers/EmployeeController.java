@@ -1,7 +1,7 @@
 package controllers;
 
-import domain.departament.Departament;
-import domain.departament.Level;
+import domain.department.Department;
+import domain.department.Level;
 import domain.employee.Employee;
 import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
@@ -10,6 +10,8 @@ import enums.employee.EmployeeUpdateOption;
 import lombok.AllArgsConstructor;
 import services.EmployeeService;
 
+import static utils.ReaderUtils.*;
+import static utils.EnumListUtils.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -20,21 +22,23 @@ public final class EmployeeController {
 
     private final EmployeeService service;
 
-    public void create(final List<Departament> departaments) {
+    public void create(final List<Department> departments) {
 
-        String name = service.receiveInputString("first name (without special characters and more than three letters!)");
+        String name = readString("first name (without special characters and more than three letters!)");
         name = service.validateAndFormatName(name);
 
-        final String document = service.receiveInputString("document (CPF with dots and dash)");
+        final String document = readString("CPF (patern xxx.xxx.xxx-xx)");
         service.validateDocument(document);
 
-        final String dateInString = service.receiveInputString("birth date (pattern dd/MM/yyyy)");
+        final String dateInString = readString("birth date (pattern dd/MM/yyyy)");
         final LocalDate birthDate = service.parseAndValidateDate(dateInString);
         final int age = service.generateAge(birthDate);
 
-        final Map<Departament, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departaments);
+        final Map<Department, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departments);
 
-        final EmployeeType type = service.receiveEnumElement("Employee type", EmployeeType.class);
+
+        final EmployeeType type = readElement("Employee type",
+                getEnumList(EmployeeType.class));
         final Employee employee = service.createEmployee(name, document, birthDate, age, dls, type);
         service.defineSpecificAtributtes(employee);
 
@@ -46,23 +50,27 @@ public final class EmployeeController {
     }
 
     public List<Employee> find() {
-        EmployeeFindOption option = service.receiveEnumElement("find option", EmployeeFindOption.class);
+        final EmployeeFindOption option = readElement("find option",
+                getEnumList(EmployeeFindOption.class));
         return service.findByOption(option);
     }
 
     public Employee chooseEmployeeToUpdate(final List<Employee> employeesFound) {
         return employeesFound.size() == 1
                 ? employeesFound.get(0)
-                : service.receiveEmployee(employeesFound);
+                : readElement("Many employees returned!",
+                employeesFound);
     }
 
     public void update(final Employee employee) {
-        final EmployeeUpdateOption option = service.receiveEnumElement("Option to update", EmployeeUpdateOption.class);
+        final EmployeeUpdateOption option = readElement("Option to update",
+                getEnumList(EmployeeUpdateOption.class));
         service.updateByOption(option, employee);
     }
 
-    public int delete(final List<Departament> departaments) {
-        final EmployeeDeleteOption option = service.receiveEnumElement("Option to delete", EmployeeDeleteOption.class);
-        return service.deleteByOption(option, departaments);
+    public int delete(final List<Department> departments) {
+        final EmployeeDeleteOption option = readElement("Option to delete",
+                getEnumList(EmployeeDeleteOption.class));
+        return service.deleteByOption(option, departments);
     }
 }

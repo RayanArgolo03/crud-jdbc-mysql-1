@@ -14,7 +14,7 @@ public final class ReaderUtils {
 
     public static <T> T readElement(final String title, final List<T> list) {
 
-        PrintEnumsUtils.printElements(list);
+        PrinterUtils.printElements(list);
         int choose = readInt(title);
 
         return list.stream()
@@ -24,17 +24,17 @@ public final class ReaderUtils {
     }
 
     public static int readInt(final String title) {
-        System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), title);
+        System.out.printf("%s %s: ", DefaultMessage.ENTER_WITH.getValue(), title);
         return sc.nextInt();
     }
 
-    public static Long readLong(final String title) {
-        System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), title);
+    public static long readLong(final String title) {
+        System.out.printf("%s %s: ", DefaultMessage.ENTER_WITH.getValue(), title);
         return sc.nextLong();
     }
 
     public static String readString(final String title) {
-        System.out.printf("%s %s: \n", DefaultMessage.ENTER_WITH.getValue(), title);
+        System.out.printf("%s %s: ", DefaultMessage.ENTER_WITH.getValue(), title);
         return sc.next();
     }
 

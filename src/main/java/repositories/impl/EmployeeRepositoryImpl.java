@@ -1,9 +1,9 @@
 package repositories.impl;
 
+import domain.department.Department;
 import repositories.interfaces.EmployeeRepository;
 import database.DbConnection;
-import domain.departament.Departament;
-import domain.departament.Level;
+import domain.department.Level;
 import domain.employee.Employee;
 import domain.employee.NormalEmployee;
 import domain.employee.SuperiorEmployee;
@@ -19,6 +19,7 @@ import java.sql.Date;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Log4j2
@@ -37,18 +38,17 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                 employee.getBirthDate(),
                 employee.getAge(),
                 employee.getDocument());
-             ResultSet rs = this.executeSaveEmployee(c, ps)
-        ) {
+             ResultSet rs = this.executeSaveEmployee(c, ps)) {
 
             rs.next();
             final Long employeeId = rs.getLong(1);
             employee.setId(employeeId);
 
             //Save jobs information in pivot table
-            this.saveJobsInformation(c, employee.getId(), employee.getDepartamentsAndLevelsAndSalaries());
+            this.saveJobsInformation(c, employee.getId(), employee.getDepartmentsAndLevelsAndSalaries());
         }
 
-        //If employee document alredy exists
+        //If employee document already exists
         catch (SQLIntegrityConstraintViolationException e) {
             try {
                 c.close();
@@ -56,7 +56,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                 log.error(ee.getMessage());
             }
 
-            throw new DbConnectionException("Employee alredy exists!");
+            throw new DbConnectionException("Employee already exists!");
 
         } catch (Exception e) {
             try {
@@ -105,14 +105,14 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
     public void saveJobsInformation(final Connection c,
                                     final long employeeId,
-                                    final Map<Departament, Map<Level, BigDecimal>> dls) {
+                                    final Map<Department, Map<Level, BigDecimal>> dls) {
 
         log.info("Saving jobs informations.. ");
 
         //Not commit here
         try (PreparedStatement ps = this.createQueryForSaveJobsInformations(c)) {
 
-            for (Departament d : dls.keySet()) {
+            for (Department d : dls.keySet()) {
                 Level level = dls.get(d).keySet().stream().findFirst().get();
                 BigDecimal salary = dls.get(d).get(level);
                 this.executeSaveJobsInformations(ps, d.getId(), employeeId, level, salary);
@@ -228,6 +228,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
              PreparedStatement ps = this.createQueryForUpdateName(c, newName, employee.getId())) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee name!");
+            employee.setName(newName);
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
@@ -256,14 +257,13 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateDocument(c, newDocument, employee.getId())) {
 
-            if (ps.executeUpdate() == 0) {
-                throw new DbConnectionException("Error in update employee document!");
-            }
+            if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee document!");
+            employee.setDocument(newDocument);
 
         }
         //Case document repeated
         catch (SQLIntegrityConstraintViolationException e) {
-            throw new DbConnectionException("Employee document alredy exists!");
+            throw new DbConnectionException("Employee document already exists!");
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
         }
@@ -284,14 +284,24 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     }
 
     @Override
-    public void updateLevel(final Employee employee, final Departament departament, final Level newLevel) {
+    public void updateLevel(final Employee employee, final Department department, final Level newLevel, final Level oldLevel) {
 
         log.info("Updating seniority of employee {} \n", employee.getName());
 
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForUpdateLevel(c, departament.getId(), employee.getId(), newLevel)) {
+             PreparedStatement ps = this.createQueryForUpdateLevel(c, department.getId(), employee.getId(), newLevel)) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee level!");
+
+            //Set new level in Employee Entity
+            Map<Department, Map<Level, BigDecimal>> aux = employee.getDepartmentsAndLevelsAndSalaries();
+
+            final BigDecimal currentSalary = aux
+                    .get(department)
+                    .get(oldLevel);
+
+            employee.getDepartmentsAndLevelsAndSalaries()
+                    .put(department, Map.of(newLevel, currentSalary));
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
@@ -316,15 +326,24 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         return ps;
     }
 
+
     @Override
-    public void updateSalary(final Employee employee, final Departament departament, final BigDecimal newSalary) {
+    public void updateSalary(final Employee employee, final Department department, final BigDecimal newSalary, final BigDecimal oldSalary) {
 
         log.info("Updating salary of employee {} \n", employee.getName());
 
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForUpdateSalary(c, departament.getId(), employee.getId(), newSalary)) {
+             PreparedStatement ps = this.createQueryForUpdateSalary(c, department.getId(), employee.getId(), newSalary)) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee salary!");
+
+            //Set new salary in Employee
+            final Level currentLevel = new ArrayList<>(employee.getDepartmentsAndLevelsAndSalaries()
+                    .get(department)
+                    .keySet()).get(0);
+
+            employee.getDepartmentsAndLevelsAndSalaries()
+                    .put(department, Map.of(currentLevel, newSalary));
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
@@ -371,7 +390,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         return Optional.empty();
     }
 
-    private PreparedStatement createQueryForFindBaseEmployeeById(final Connection c, final long id)
+    private PreparedStatement createQueryForFindBaseEmployeeById(final Connection c, final long employeeId)
             throws SQLException {
 
         final String FIND_BASE_EMP = """
@@ -384,7 +403,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                 """;
 
         PreparedStatement ps = c.prepareStatement(FIND_BASE_EMP);
-        ps.setLong(1, id);
+        ps.setLong(1, employeeId);
         return ps;
     }
 
@@ -542,7 +561,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             final int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException("No return, no employees have been sacked!");
+                throw new DbConnectionException(String.format("No employees found by id %d, nobody sacked!", id));
             }
 
             return deletedRows;
@@ -577,7 +596,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             final int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException("No return, no employees have been sacked!");
+                throw new DbConnectionException(String.format("No employees found by name %s, nobody sacked!", name));
             }
 
             return deletedRows;
@@ -611,7 +630,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException("No return, no employee have been sacked!");
+                throw new DbConnectionException(String.format("No employees found by document %s, nobody sacked!", document));
             }
 
             return deletedRows;
@@ -642,7 +661,8 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException("No return, no employees have been sacked!");
+                throw new DbConnectionException(String.format("No employees found by hire date %s, nobody sacked!",
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy").format(hireDateWithoutTime)));
             }
 
             return deletedRows;
@@ -667,14 +687,14 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     }
 
     @Override
-    public int deleteByDepartament(final Departament departament) {
+    public int deleteByDepartment(final Department department) {
 
         try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForDeleteByDepartament(c, departament.getId())) {
+             PreparedStatement ps = this.createQueryForDeleteByDepartament(c, department.getId())) {
 
             int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException("No return, no employees have been sacked!");
+                throw new DbConnectionException(String.format("No employees found by departament %s, nobody sacked!", department.getName()));
             }
 
             return deletedRows;
@@ -717,7 +737,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
             final String document = rs0.getString("document");
             final LocalDateTime hireDate = rs0.getObject("hire_date", LocalDateTime.class);
 
-            final Map<Departament, Map<Level, BigDecimal>> dls = this.createJobsInformation(rs1);
+            final Map<Department, Map<Level, BigDecimal>> dls = this.createJobsInformation(rs1);
             if (dls.isEmpty()) {
                 throw new DbConnectionException("Employee without a job! Check your database!");
             }
@@ -747,12 +767,11 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     private PreparedStatement createQueryForFindJobsInformations(final Connection c, final long employeeId)
             throws SQLException {
 
-        //Error
         final String FIND_JOBS_INFORMATIONS = """
                 SELECT
                     d.id, d.name, d.creation_date, dhe.level, dhe.salary
                 FROM
-                    departaments AS d
+                    departments AS d
                 INNER JOIN
                     departaments_has_employees AS dhe
                 ON
@@ -765,19 +784,19 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         return ps;
     }
 
-    private Map<Departament, Map<Level, BigDecimal>> createJobsInformation(final ResultSet rs1)
+    private Map<Department, Map<Level, BigDecimal>> createJobsInformation(final ResultSet rs1)
             throws SQLException {
 
         //Ordered map
-        final Map<Departament, Map<Level, BigDecimal>> dls = new TreeMap<>(
-                Comparator.comparing(Departament::getName)
+        final Map<Department, Map<Level, BigDecimal>> dls = new TreeMap<>(
+                Comparator.comparing(Department::getName)
         );
 
         while (rs1.next()) {
             Long id = rs1.getLong("id");
             String name = rs1.getString("name");
             LocalDateTime creationDate = rs1.getObject("creation_date", LocalDateTime.class);
-            Departament departament = Departament.builder()
+            Department department = Department.builder()
                     .id(id)
                     .name(name)
                     .creationDate(creationDate)
@@ -786,7 +805,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
             Level level = Level.valueOf(rs1.getString("level"));
             BigDecimal salary = rs1.getBigDecimal("salary");
 
-            dls.put(departament, Map.of(level, salary));
+            dls.put(department, Map.of(level, salary));
         }
 
         return dls;
@@ -833,7 +852,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                                                    final LocalDate birthDate,
                                                    final int age,
                                                    final String document,
-                                                   final Map<Departament, Map<Level, BigDecimal>> dls,
+                                                   final Map<Department, Map<Level, BigDecimal>> dls,
                                                    final boolean hasFaculty,
                                                    final LocalDateTime hireDate) {
         return NormalEmployeeDTO.builder()
@@ -853,7 +872,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                                                      final LocalDate birthDate,
                                                      final int age,
                                                      final String document,
-                                                     final Map<Departament, Map<Level, BigDecimal>> dls,
+                                                     final Map<Department, Map<Level, BigDecimal>> dls,
                                                      int workExperience,
                                                      final LocalDateTime hireDate) {
         return SuperiorEmployeeDTO.builder()

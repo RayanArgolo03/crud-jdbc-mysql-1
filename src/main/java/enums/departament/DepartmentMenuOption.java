@@ -1,5 +1,5 @@
 package enums.departament;
 
-public enum DepartamentMenuOption {
+public enum DepartmentMenuOption {
     OUT, CREATE, UPDATE, SHOW, DELETE
 }

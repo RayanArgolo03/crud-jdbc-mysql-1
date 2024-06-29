@@ -1,7 +1,7 @@
 package repositories.interfaces;
 
-import domain.departament.Departament;
-import domain.departament.Level;
+import domain.department.Department;
+import domain.department.Level;
 import domain.employee.Employee;
 import domain.employee.NormalEmployee;
 import domain.employee.SuperiorEmployee;
@@ -15,13 +15,13 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface EmployeeRepository extends EntityRepository<Employee> {
-    void saveJobsInformation(Connection c, long id, Map<Departament, Map<Level, BigDecimal>> dls);
+    void saveJobsInformation(Connection c, long id, Map<Department, Map<Level, BigDecimal>> dls);
 
     void saveNormalEmployee(NormalEmployee ne);
 
     void saveSuperiorEmployee(SuperiorEmployee se);
 
-    Optional<EmployeeBaseDTO> findById(long id);
+    Optional<EmployeeBaseDTO> findById(long employeeId);
 
     Optional<EmployeeBaseDTO> findByDocument(String document);
 
@@ -35,15 +35,16 @@ public interface EmployeeRepository extends EntityRepository<Employee> {
 
     void updateDocument(Employee employee, String newDocument);
 
-    void updateLevel(Employee employee, Departament departament, Level newLevel);
+    void updateLevel(Employee employee, Department department, Level newLevel, Level oldLevel);
 
-    void updateSalary(Employee employee, Departament departament, BigDecimal newSalary);
+    void updateSalary(Employee employee, Department department, BigDecimal newSalary, BigDecimal oldSalary);
 
     int deleteByName(String name);
 
     int deleteByDocument(String document);
 
     int deleteByHireDate(LocalDate hireDateWithoutTime);
-    int deleteByDepartament(Departament departament);
+
+    int deleteByDepartment(Department department);
 
 }

@@ -1,18 +1,17 @@
-package mappers;
+package mappers.impl;
 
 import domain.user.User;
-import dto.base.BaseDto;
 import dto.user.UserDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import mappers.interfaces.Mapper;
 
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-public final class UserMapper implements Mapper<UserDTO, User> {
+public final class UserMapperImpl implements Mapper<UserDTO, User> {
     @Override
-    public User dtoToEntity(UserDTO baseDto) {
-        final User user = new User(baseDto.getUsername(), baseDto.getPassword());
-        user.setId(baseDto.getId());
+    public User dtoToEntity(UserDTO dto) {
+        final User user = new User(dto.getUsername(), dto.getPassword());
+        user.setId(dto.getId());
         return user;
     }
 }

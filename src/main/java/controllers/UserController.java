@@ -11,13 +11,13 @@ public final class UserController {
 
     public User create() {
 
-        final String username = service.receiveInput("username(with more than 3 characters and contain at least 1 special character):");
+        final String username = service.receiveStringInput("username(with more than 3 characters and contain at least 1 special character):");
         service.validateUsername(username);
 
-        //Not allow continue if user alredy exists in the database
+        //Not allow continue if user already exists in the database
         service.findUsername(username);
 
-        final String password = service.receiveInput("password (with more than 1 special character)");
+        final String password = service.receiveStringInput("password (with more than 1 special character)");
         service.validatePassword(password);
 
         User user = new User(username, password);
@@ -27,8 +27,8 @@ public final class UserController {
     }
 
     public User find() {
-        final String username = service.receiveInput("username");
-        final String password = service.receiveInput("password");
+        final String username = service.receiveStringInput("username");
+        final String password = service.receiveStringInput("password");
         return service.findUser(username, password);
     }
 
