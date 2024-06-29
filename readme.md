@@ -27,7 +27,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 # Como usar o aplicativo?
 ## Inicialização com Docker Compose
 
-0. Faça um fork ou clone o programa
+0. Faça um fork, baixe ou clone o programa
 
 1. Certifique-se de ter o Docker instalado em sua máquina e inicie-o
 
