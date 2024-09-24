@@ -1,4 +1,4 @@
-# CRUD - Gestão Empresarial
+# CRUD - Gestão Empresarial - Hibernate
 Este projeto consiste em um sistema de gestão de funcionários, departamentos e usuários do sistema. Foi criado para fins de estudo e aprendizado de novas tecnologias.
 
 ## Tecnologias Utilizadas
@@ -8,7 +8,9 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 - Log4j2
 - Maven
 - Java
-- JDBC
+- Hibernate
+- Mapstruct
+- MongoDB
 - Junit5
 - Mockito
 - Docker (Container MySQL)
