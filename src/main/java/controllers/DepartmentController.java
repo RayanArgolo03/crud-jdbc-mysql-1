@@ -1,10 +1,9 @@
 package controllers;
 
-import domain.department.Department;
+import model.department.Department;
 import enums.departament.DepartmentDeleteOption;
 import enums.departament.DepartmentFindOption;
 import enums.departament.DepartmentUpdateOption;
-import enums.employee.EmployeeFindOption;
 
 import static utils.ReaderUtils.*;
 import static utils.EnumListUtils.*;
@@ -25,7 +24,7 @@ public final class DepartmentController {
 
     public void create() {
 
-        String name = readString("department name");
+        String name = readString("department departmentName");
         name = service.validateAndFormatName(name);
 
         final Department department = service.createDepartament(name);
@@ -35,6 +34,7 @@ public final class DepartmentController {
     }
 
     public List<Department> findAll() {
+        log.info("\n Finding departments..");
         return service.findAll();
     }
 
@@ -51,7 +51,7 @@ public final class DepartmentController {
     }
 
     public void update(final Department department) {
-        //The departament can only have its name updated, but new options can be added
+        //The departament can only have its departmentName updated, but new options can be added
         service.updateByOption(DepartmentUpdateOption.NAME, department);
     }
 

@@ -1,12 +1,10 @@
 package services;
 
-import domain.department.Department;
-import domain.employee.Employee;
-import domain.employee.NormalEmployee;
-import dto.departament.DepartmentDTO;
+import model.department.Department;
+import model.employee.NormalEmployee;
+import dtos.DepartmentResponse;
 import exceptions.DbConnectionException;
 import exceptions.DepartmentException;
-import exceptions.EmployeeException;
 import mappers.interfaces.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,16 +36,16 @@ class DepartmentServiceTest {
     @Mock
     private DepartmentRepository repository;
     @Mock
-    private Mapper<DepartmentDTO, Department> mapper;
+    private Mapper<DepartmentResponse, Department> mapper;
 
     @InjectMocks
     private DepartmentService service;
 
     @Nested
-    @DisplayName("** Validate and format name methods **")
+    @DisplayName("** Validate and format departmentName methods **")
     class ValidateAndFormatNameTests {
         @Test
-        @DisplayName("Should be throw NullPointerException when the name is null")
+        @DisplayName("Should be throw NullPointerException when the departmentName is null")
         void givenValidateAndFormatName_whenTheNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -58,7 +56,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return formatted name when the name is not null")
+        @DisplayName("Should be return formatted departmentName when the departmentName is not null")
         void givenValidateAndFormatName_whenTheNameIsNotNull_thenReturnFormattedName() {
             final String unformattedName = "AnYYnAme";
             final String expectedFormattedName = "Anyyname";
@@ -195,8 +193,8 @@ class DepartmentServiceTest {
         @DisplayName("Should be return list of Mapped Departments when has departments in the database")
         void givenFindAll_whenHasDepartmentsInTheDatabase_thenReturnMappedList() {
 
-            final DepartmentDTO d1 = DepartmentDTO.builder().build();
-            final DepartmentDTO d2 = DepartmentDTO.builder().build();
+            final DepartmentResponse d1 = DepartmentResponse.builder().build();
+            final DepartmentResponse d2 = DepartmentResponse.builder().build();
 
             when(repository.findAll()).thenReturn(List.of(d1, d2));
             when(mapper.dtoToEntity(any())).thenReturn(Department.builder().build());
@@ -243,7 +241,7 @@ class DepartmentServiceTest {
         @DisplayName("Should be return a department mapped when the id is found")
         void givenFindById_whenDepartmentIsFound_thenReturnDepartmentMapped() {
 
-            final DepartmentDTO dto = DepartmentDTO.builder().id(id).build();
+            final DepartmentResponse dto = DepartmentResponse.builder().id(id).build();
             final Department expectedDepartment = Department.builder().id(dto.getId()).build();
 
             when(repository.findById(id)).thenReturn(Optional.of(dto));
@@ -257,7 +255,7 @@ class DepartmentServiceTest {
 
     }
 
-    @DisplayName("** Find by name **")
+    @DisplayName("** Find by departmentName **")
     @Nested
     class FindByNameTests {
 
@@ -269,7 +267,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the name is null")
+        @DisplayName("Should be throw NullPointerException when the departmentName is null")
         void givenFindByName_whenNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -280,7 +278,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw DepartmentException when departments not found by name passed")
+        @DisplayName("Should be throw DepartmentException when departments not found by departmentName passed")
         void givenFindByName_whenDepartmentsNotFoundByName_thenThrowDepartmentException() {
 
             when(repository.findByName(name)).thenReturn(List.of());
@@ -288,25 +286,25 @@ class DepartmentServiceTest {
             final DepartmentException e = assertThrows(DepartmentException.class,
                     () -> service.findByName(name));
 
-            final String expectedMessage = String.format("Departments not found by name %s!", name);
+            final String expectedMessage = String.format("Departments not found by departmentName %s!", name);
             assertEquals(expectedMessage, e.getMessage());
 
             verify(repository).findByName(name);
         }
 
         @Test
-        @DisplayName("Should be return a list with mapped departments when the name passed found departments")
+        @DisplayName("Should be return a list with mapped departments when the departmentName passed found departments")
         void givenFindByName_whenFoundDepartments_thenReturnMappedDepartmentsList() {
 
-            final DepartmentDTO dto1 = DepartmentDTO.builder().name(name + "a").build();
-            final DepartmentDTO dto2 = DepartmentDTO.builder().name(name + "b").build();
+            final DepartmentResponse dto1 = DepartmentResponse.builder().name(name + "a").build();
+            final DepartmentResponse dto2 = DepartmentResponse.builder().name(name + "b").build();
 
             when(repository.findByName(name)).thenReturn(List.of(dto1, dto2));
 
             doAnswer(param -> {
-                DepartmentDTO dtoFound = param.getArgument(0);
+                DepartmentResponse dtoFound = param.getArgument(0);
                 return Department.builder()
-                        .name(dtoFound.getName())
+                        .name(dtoFound.departmentName())
                         .build();
             }).when(mapper).dtoToEntity(any());
 
@@ -351,7 +349,7 @@ class DepartmentServiceTest {
         void givenFindByCreationDate_whenDepartmentsFoundByCreationDate_thenReturnADepartmentMappedList() {
 
             final LocalDateTime expectedCreationDate = LocalDateTime.of(creationDateWithoutTime, LocalTime.now());
-            final DepartmentDTO dto1 = DepartmentDTO.builder().creationDate(expectedCreationDate).build();
+            final DepartmentResponse dto1 = DepartmentResponse.builder().creationDate(expectedCreationDate).build();
 
             when(repository.findbyCreationDate(creationDateWithoutTime)).thenReturn(List.of(dto1));
             when(mapper.dtoToEntity(dto1)).thenReturn(
@@ -364,7 +362,7 @@ class DepartmentServiceTest {
 
             assertNotNull(list);
             assertEquals(1, list.size());
-            assertEquals(expectedCreationDate, list.get(0).getCreationDate());
+            assertEquals(expectedCreationDate, list.get(0).getCreatedDate());
 
             verify(repository).findbyCreationDate(creationDateWithoutTime);
             verify(mapper, atMostOnce()).dtoToEntity(dto1);
@@ -374,7 +372,7 @@ class DepartmentServiceTest {
     }
 
     @Nested
-    @DisplayName("** Update name **")
+    @DisplayName("** Update departmentName **")
     class UpdateName {
         private Department department;
 
@@ -384,31 +382,31 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the new name is null")
+        @DisplayName("Should be throw NullPointerException when the new departmentName is null")
         void givenUpdateName_whenNewNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
                     () -> service.updateName(department, null));
 
-            final String expectedMessage = "New name can´t be null!";
+            final String expectedMessage = "New departmentName can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when the new name is equals to the current name")
+        @DisplayName("Should be throw EmployeeException when the new departmentName is equals to the current departmentName")
         void givenUpdateName_whenNewNameIsEqualsToCurrentName_thenThrowEmployeeException() {
 
             final DepartmentException e = assertThrows(DepartmentException.class,
                     () -> service.updateName(department, department.getName()));
 
-            final String expectedMessage = "New name is equals to current name!";
+            final String expectedMessage = "New departmentName is equals to current departmentName!";
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be set new name in Department when the new name is valid")
+        @DisplayName("Should be set new departmentName in Department when the new departmentName is valid")
         void givenUpdateName_whenNewNameIsValid_thenSetNewNameInDepartment() {
 
             final String expectedNewName = "Hayek";
@@ -472,7 +470,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return the employees dismissed when department has been deleted by name")
+        @DisplayName("Should be return the employees dismissed when department has been deleted by departmentName")
         void givenDeleteById_whenDepartmentHasBeenDeleted_thenReturnDismissedEmployees() {
 
             final List<NormalEmployee> employeesDismissedMocked = List.of(NormalEmployee.builder().build(), NormalEmployee.builder().build());
@@ -485,7 +483,7 @@ class DepartmentServiceTest {
     }
 
     @Nested
-    @DisplayName("** Delete by name methods **")
+    @DisplayName("** Delete by departmentName methods **")
     class DeleteByNameTests {
 
         private String name;
@@ -496,10 +494,10 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw DepartmentException when no has departments found by name")
+        @DisplayName("Should be throw DepartmentException when no has departments found by departmentName")
         void givenDeleteByName_whenNoHasDepartmentsFoundByName_thenThrowDepartmentException() {
 
-            final String expectedCauseMessage = String.format("Departments not found by name %s!", name);
+            final String expectedCauseMessage = String.format("Departments not found by departmentName %s!", name);
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).deleteByName(name);
 
             final DepartmentException e = assertThrows(DepartmentException.class,
@@ -515,7 +513,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return 1 when employee has been deleted by name")
+        @DisplayName("Should be return 1 when employee has been deleted by departmentName")
         void givenDeleteByName_whenOneDepartmentHasBeenDeletedByName_thenReturnOne() {
             when(repository.deleteByName(name)).thenReturn(1);
             assertEquals(1, service.deleteByName(name));
@@ -523,7 +521,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return more than 1 when more than one departments has been deleted by name")
+        @DisplayName("Should be return more than 1 when more than one departments has been deleted by departmentName")
         void givenDeleteByName_whenMoreThanOneDepartmentsHasBeenDeletedByName_thenReturnMoreThanOne() {
 
             when(repository.deleteByName(name)).thenReturn(

@@ -1,11 +1,11 @@
 package repositories.interfaces;
 
-import domain.department.Department;
-import domain.department.Level;
-import domain.employee.Employee;
-import domain.employee.NormalEmployee;
-import domain.employee.SuperiorEmployee;
-import dto.employee.EmployeeBaseDTO;
+import model.department.Department;
+import model.department.Level;
+import model.employee.Employee;
+import model.employee.NormalEmployee;
+import model.employee.SuperiorEmployee;
+import dtos.employee.EmployeeBaseDTO;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

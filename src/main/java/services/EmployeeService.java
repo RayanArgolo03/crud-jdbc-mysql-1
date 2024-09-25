@@ -1,14 +1,15 @@
 package services;
 
 
-import domain.department.Department;
-import domain.department.Level;
-import domain.employee.Employee;
-import domain.employee.NormalEmployee;
-import domain.employee.SuperiorEmployee;
-import dto.employee.EmployeeBaseDTO;
-import dto.employee.NormalEmployeeDTO;
-import dto.employee.SuperiorEmployeeDTO;
+import mappers.EmployeeMapper;
+import model.department.Department;
+import model.department.Level;
+import model.employee.Employee;
+import model.employee.NormalEmployee;
+import model.employee.SuperiorEmployee;
+import dtos.employee.EmployeeBaseDTO;
+import dtos.employee.NormalEmployeeDTO;
+import dtos.EmployeeResponse;
 import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeType;
@@ -17,8 +18,6 @@ import enums.menu.YesOrNo;
 import exceptions.DbConnectionException;
 import exceptions.EmployeeException;
 import factory.EmployeeBuilderFactory;
-import lombok.AllArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import mappers.interfaces.Mapper;
 import repositories.interfaces.EmployeeRepository;
 import utils.EnumListUtils;
@@ -35,19 +34,21 @@ import java.util.stream.Collectors;
 
 import static utils.ReaderUtils.*;
 
-@FieldDefaults(makeFinal = true)
-@AllArgsConstructor
 public final class EmployeeService {
 
-    private Mapper<NormalEmployeeDTO, NormalEmployee> normalMapper;
-    private Mapper<SuperiorEmployeeDTO, SuperiorEmployee> superiorMapper;
-    private EmployeeRepository repository;
+    private final EmployeeRepository repository;
+    private final EmployeeMapper mapper;
+
+    public EmployeeService(EmployeeRepository repository, EmployeeMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
 
     public String validateAndFormatName(final String name) {
 
         Objects.requireNonNull(name, "Name can´t be null!");
 
-        if (name.length() < 3) throw new EmployeeException(String.format("%s is a small name!", name));
+        if (name.length() < 3) throw new EmployeeException(String.format("%s is a small departmentName!", name));
 
         if (!name.matches("^[A-Za-z]+((\\s)?((['\\-.])?([A-Za-z])+))*$")) {
             throw new EmployeeException(String.format("%s contains special characters!", name));
@@ -142,13 +143,14 @@ public final class EmployeeService {
 
         Objects.requireNonNull(type, "Employee type can´t be null!");
 
-        return EmployeeBuilderFactory.newEmployeeBuilder(type)
-                .name(name)
-                .document(document)
-                .birthDate(birthDate)
-                .age(age)
-                .departmentsAndLevelsAndSalaries(dls)
-                .build();
+//        return EmployeeBuilderFactory.newEmployeeBuilder(type)
+//                .name(name)
+//                .document(document)
+//                .birthDate(birthDate)
+//                .age(age)
+//                .departmentsAndLevelsAndSalaries(dls)
+//                .build();
+        return null;
     }
 
     public void defineSpecificAtributtes(final Employee employee) {
@@ -162,7 +164,7 @@ public final class EmployeeService {
     }
 
     public void defineHasFaculty(final NormalEmployee ne, final YesOrNo option) {
-        if (option == YesOrNo.YES) ne.setHasFaculty(true);
+//        if (option == YesOrNo.YES) ne.setHasFaculty(true);
     }
 
     public void defineWorkExperience(final SuperiorEmployee se, final int age, final int workExperience) {
@@ -175,7 +177,7 @@ public final class EmployeeService {
             throw new EmployeeException("Superior Employee can´t be started work under the age of fifteen! (15 years old)");
         }
 
-        se.setWorkExperience(workExperience);
+//        se.setWorkExperience(workExperience);
     }
 
     public void saveBaseEmployee(final Employee employee) {
@@ -204,7 +206,7 @@ public final class EmployeeService {
                 yield findById(employeeId);
             }
             case NAME -> {
-                final String name = readString("name");
+                final String name = readString("departmentName");
                 yield findByName(name);
             }
             case DOCUMENT -> {
@@ -235,7 +237,7 @@ public final class EmployeeService {
         Objects.requireNonNull(name, "Name can´t be null");
 
         final List<EmployeeBaseDTO> list = repository.findByName(name);
-        if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by name %s!", name));
+        if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by departmentName %s!", name));
 
         return list.stream()
                 .map(this::mappperToSpecificEntity)
@@ -278,7 +280,7 @@ public final class EmployeeService {
 
         switch (option) {
             case NAME -> {
-                final String newName = readString("new name");
+                final String newName = readString("new departmentName");
                 updateName(employee, newName);
             }
             case DOCUMENT -> {
@@ -325,10 +327,10 @@ public final class EmployeeService {
 
     public void updateName(final Employee employee, final String newName) {
 
-        Objects.requireNonNull(newName, "New name can´t be null!");
+        Objects.requireNonNull(newName, "New departmentName can´t be null!");
 
         if (newName.equals(employee.getName())) {
-            throw new EmployeeException(String.format("Name %s can´t be equals to current name!", newName));
+            throw new EmployeeException(String.format("Name %s can´t be equals to current departmentName!", newName));
         }
 
         repository.updateName(employee, newName);
@@ -366,7 +368,7 @@ public final class EmployeeService {
                 yield deleteById(id);
             }
             case NAME -> {
-                final String name = readString("name");
+                final String name = readString("departmentName");
                 yield deleteByName(name);
             }
             case DOCUMENT -> {
@@ -429,7 +431,7 @@ public final class EmployeeService {
 
     private Employee mappperToSpecificEntity(final EmployeeBaseDTO dto) {
 
-        if (dto instanceof SuperiorEmployeeDTO sed) {
+        if (dto instanceof EmployeeResponse sed) {
             return superiorMapper.dtoToEntity(sed);
         } else if (dto instanceof NormalEmployeeDTO ned) {
             return normalMapper.dtoToEntity(ned);

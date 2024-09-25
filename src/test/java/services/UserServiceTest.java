@@ -1,8 +1,7 @@
 package services;
 
-import domain.user.User;
-import dto.user.UserDTO;
-import exceptions.DbConnectionException;
+import model.user.User;
+import dtos.UserResponse;
 import exceptions.UserException;
 import mappers.interfaces.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +26,7 @@ class UserServiceTest {
     @Mock
     private UserRepository repository;
     @Mock
-    private Mapper<UserDTO, User> mapper;
+    private Mapper<UserResponse, User> mapper;
     @InjectMocks
     private UserService service;
 
@@ -178,17 +177,17 @@ class UserServiceTest {
         @DisplayName("Should be return an user with id when the username and password already exists")
         void givenFindUser_whenUserIsFound_thenReturnUser() {
 
-            final UserDTO dto = new UserDTO(1L, username, password);
+            final UserResponse dto = new UserResponse(1L, username, password);
             final User userExpected = new User(username, password);
 
             when(repository.findUser(username, password)).thenReturn(Optional.of(dto));
 
             when(mapper.dtoToEntity(dto)).thenReturn(userExpected);
             //Mapper action
-            userExpected.setId(dto.getId());
+            userExpected.setId(dto.id());
 
             assertEquals(userExpected, service.findUser(username, password));
-            assertEquals(dto.getId(), userExpected.getId());
+            assertEquals(dto.id(), userExpected.getId());
 
             verify(repository).findUser(username, password);
             verify(mapper).dtoToEntity(dto);
@@ -270,7 +269,7 @@ class UserServiceTest {
         void givenDeleteUser_whenUserIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.deleteUser(null));
+                    () -> service.deleteById(null));
 
             final String expectedMessage = "User can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
@@ -286,7 +285,7 @@ class UserServiceTest {
 
             when(repository.deleteById(user.getId())).thenReturn(idIntExpected);
 
-            assertEquals(idIntExpected, service.deleteUser(user));
+            assertEquals(idIntExpected, service.deleteById(user));
 
             verify(repository).deleteById(user.getId());
         }
@@ -300,7 +299,7 @@ class UserServiceTest {
             when(repository.deleteById(user.getId())).thenThrow(expectedCause);
 
             final UserException e = assertThrows(UserException.class,
-                    () -> service.deleteUser(user));
+                    () -> service.deleteById(user));
             assertEquals(expectedCause, e.getCause());
 
             final String expectedMessage = String.format("Id %d is too long to convert, undo workaround :)", user.getId());

@@ -1,30 +1,34 @@
 package controllers;
 
-import domain.department.Department;
-import domain.department.Level;
-import domain.employee.Employee;
 import enums.employee.EmployeeDeleteOption;
 import enums.employee.EmployeeFindOption;
 import enums.employee.EmployeeType;
 import enums.employee.EmployeeUpdateOption;
-import lombok.AllArgsConstructor;
+import model.department.Department;
+import model.department.Level;
+import model.employee.Employee;
 import services.EmployeeService;
 
-import static utils.ReaderUtils.*;
-import static utils.EnumListUtils.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
+import static utils.EnumListUtils.getEnumList;
+import static utils.ReaderUtils.readElement;
+import static utils.ReaderUtils.readString;
+
 public final class EmployeeController {
 
     private final EmployeeService service;
 
+    public EmployeeController(EmployeeService service) {
+        this.service = service;
+    }
+
     public void create(final List<Department> departments) {
 
-        String name = readString("first name (without special characters and more than three letters!)");
+        String name = readString("first departmentName (without special characters and more than three letters!)");
         name = service.validateAndFormatName(name);
 
         final String document = readString("CPF (patern xxx.xxx.xxx-xx)");
@@ -35,7 +39,6 @@ public final class EmployeeController {
         final int age = service.generateAge(birthDate);
 
         final Map<Department, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departments);
-
 
         final EmployeeType type = readElement("Employee type",
                 getEnumList(EmployeeType.class));

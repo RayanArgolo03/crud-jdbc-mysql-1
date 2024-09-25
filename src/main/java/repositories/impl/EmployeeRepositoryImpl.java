@@ -1,15 +1,15 @@
 package repositories.impl;
 
-import domain.department.Department;
+import model.department.Department;
 import repositories.interfaces.EmployeeRepository;
 import database.DbConnection;
-import domain.department.Level;
-import domain.employee.Employee;
-import domain.employee.NormalEmployee;
-import domain.employee.SuperiorEmployee;
-import dto.employee.EmployeeBaseDTO;
-import dto.employee.NormalEmployeeDTO;
-import dto.employee.SuperiorEmployeeDTO;
+import model.department.Level;
+import model.employee.Employee;
+import model.employee.NormalEmployee;
+import model.employee.SuperiorEmployee;
+import dtos.employee.EmployeeBaseDTO;
+import dtos.employee.NormalEmployeeDTO;
+import dtos.EmployeeResponse;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -222,12 +222,12 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public void updateName(final Employee employee, final String newName) {
 
-        log.info("Updating name of employee {} \n", employee.getName());
+        log.info("Updating departmentName of employee {} \n", employee.getName());
 
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateName(c, newName, employee.getId())) {
 
-            if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee name!");
+            if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee departmentName!");
             employee.setName(newName);
 
         } catch (SQLException e) {
@@ -410,7 +410,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public List<EmployeeBaseDTO> findByName(final String name) {
 
-        log.info("Tryning to find by name {} \n", name);
+        log.info("Tryning to find by departmentName {} \n", name);
 
         final List<EmployeeBaseDTO> list = new ArrayList<>();
         try (Connection c = DbConnection.getConnection();
@@ -596,7 +596,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             final int deletedRows = ps.executeUpdate();
             if (deletedRows == 0) {
-                throw new DbConnectionException(String.format("No employees found by name %s, nobody sacked!", name));
+                throw new DbConnectionException(String.format("No employees found by departmentName %s, nobody sacked!", name));
             }
 
             return deletedRows;
@@ -731,7 +731,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
              ResultSet rs1 = ps1.executeQuery()) {
 
             //Base employee data
-            final String name = rs0.getString("name");
+            final String name = rs0.getString("departmentName");
             final LocalDate birthDate = rs0.getObject("birth_date", LocalDate.class);
             final int age = rs0.getInt("age");
             final String document = rs0.getString("document");
@@ -794,7 +794,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         while (rs1.next()) {
             Long id = rs1.getLong("id");
-            String name = rs1.getString("name");
+            String name = rs1.getString("departmentName");
             LocalDateTime creationDate = rs1.getObject("creation_date", LocalDateTime.class);
             Department department = Department.builder()
                     .id(id)
@@ -875,7 +875,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                                                      final Map<Department, Map<Level, BigDecimal>> dls,
                                                      int workExperience,
                                                      final LocalDateTime hireDate) {
-        return SuperiorEmployeeDTO.builder()
+        return EmployeeResponse.builder()
                 .id(id)
                 .name(name)
                 .birthDate(birthDate)

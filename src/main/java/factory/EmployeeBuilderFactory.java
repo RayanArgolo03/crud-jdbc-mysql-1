@@ -1,8 +1,8 @@
 package factory;
 
-import domain.employee.Employee;
-import domain.employee.NormalEmployee;
-import domain.employee.SuperiorEmployee;
+import model.employee.Employee;
+import model.employee.NormalEmployee;
+import model.employee.SuperiorEmployee;
 import enums.employee.EmployeeType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

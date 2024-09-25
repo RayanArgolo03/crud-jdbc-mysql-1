@@ -1,8 +1,11 @@
 package controllers;
 
-import domain.user.User;
+import dtos.UserResponse;
+import model.user.User;
 import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
 import services.UserService;
+import utils.ReaderUtils;
 
 @AllArgsConstructor
 public final class UserController {
@@ -11,13 +14,13 @@ public final class UserController {
 
     public User create() {
 
-        final String username = service.receiveStringInput("username(with more than 3 characters and contain at least 1 special character):");
+        final String username = ReaderUtils.readString("username(with more than 3 characters and contain at least 1 special character):");
         service.validateUsername(username);
 
         //Not allow continue if user already exists in the database
         service.findUsername(username);
 
-        final String password = service.receiveStringInput("password (with more than 1 special character)");
+        final String password = ReaderUtils.readString("password (with more than 1 special character)");
         service.validatePassword(password);
 
         User user = new User(username, password);
@@ -26,14 +29,14 @@ public final class UserController {
         return user;
     }
 
-    public User find() {
-        final String username = service.receiveStringInput("username");
-        final String password = service.receiveStringInput("password");
+    public UserResponse find() {
+        final String username = ReaderUtils.readString("username");
+        final String password = ReaderUtils.readString("password");
         return service.findUser(username, password);
     }
 
-    public int delete(final User user) {
-        return service.deleteUser(user);
+    public int delete(final ObjectId id) {
+        return service.deleteById(id);
     }
 
 }

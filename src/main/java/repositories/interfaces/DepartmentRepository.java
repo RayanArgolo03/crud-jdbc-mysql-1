@@ -1,20 +1,20 @@
 package repositories.interfaces;
 
-import domain.department.Department;
-import dto.departament.DepartmentDTO;
+import model.department.Department;
+import dtos.DepartmentResponse;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface DepartmentRepository extends EntityRepository<Department> {
-    List<DepartmentDTO> findAll();
+    List<Department> findAll();
 
-    List<DepartmentDTO> findByName(String name);
+    List<DepartmentResponse> findByName(String name);
 
-    Optional<DepartmentDTO> findById(long id);
+    Optional<DepartmentResponse> findById(long id);
 
-    List<DepartmentDTO> findbyCreationDate(LocalDate creationDateWithoutTime);
+    List<DepartmentResponse> findbyCreationDate(LocalDate creationDateWithoutTime);
 
     void updateName(Department department, String newName);
 

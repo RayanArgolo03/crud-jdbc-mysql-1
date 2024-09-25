@@ -1,9 +1,10 @@
 package repositories.impl;
 
+import org.bson.types.ObjectId;
 import repositories.interfaces.UserRepository;
 import database.DbConnection;
-import domain.user.User;
-import dto.user.UserDTO;
+import model.user.User;
+import dtos.UserResponse;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -26,7 +27,6 @@ public final class UserRepositoryImpl implements UserRepository {
 
             rs.next();
             final Long id = rs.getLong(1);
-            user.setId(id);
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
@@ -55,14 +55,15 @@ public final class UserRepositoryImpl implements UserRepository {
 
     //Return user id for print
     @Override
-    public int deleteById(long id) {
+    public int deleteById(ObjectId id) {
 
         log.info("Tryning to delete user with id {}.. \n", id);
 
-        try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps = this.createQueryForDeleteUser(c, id)) {
+        try (Connection c = DbConnection.getConnection()){
+//             PreparedStatement ps = this.createQueryForDeleteUser(c, id)) {
 
-            if (ps.executeUpdate() == 0) throw new DbConnectionException("Exclusion not completed!");
+//            if (ps.executeUpdate() == 0) throw new DbConnectionException("Exclusion not completed!");
+            if (c.createStatement().executeUpdate("") == 0) throw new DbConnectionException("Exclusion not completed!");
 
             //Workaround hehehe
             return Integer.parseInt(String.valueOf(id));
@@ -111,7 +112,7 @@ public final class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<UserDTO> findUser(final String username, final String password) {
+    public Optional<User> findUser(final String username, final String password) {
 
         log.info("Tryning to find {} in the database.. \n", username);
 
@@ -119,13 +120,13 @@ public final class UserRepositoryImpl implements UserRepository {
              PreparedStatement ps = this.createQueryForFindUser(c, username, password);
              ResultSet rs = ps.executeQuery()) {
 
-            if (rs.next()) return Optional.of(this.createUserDTO(rs));
-
+//            if (rs.next()) return Optional.of(this.createUserDTO(rs));
+            return null;
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
         }
 
-        return Optional.empty();
+//        return Optional.empty();
     }
 
     private PreparedStatement createQueryForFindUser(final Connection c, final String username,
@@ -143,11 +144,12 @@ public final class UserRepositoryImpl implements UserRepository {
     }
 
 
-    private UserDTO createUserDTO(final ResultSet rs) throws SQLException {
+    private UserResponse createUserDTO(final ResultSet rs) throws SQLException {
         final Long id = rs.getLong("id");
         final String username = rs.getString("username");
         final String password = rs.getString("password");
-        return new UserDTO(id, username, password);
+//        return new UserResponse(id, username, password);
+        return null;
     }
 
 

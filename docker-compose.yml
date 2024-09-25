@@ -8,3 +8,18 @@ services:
       - '3306:3306'
     volumes:
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'root'
+    ports:
+      - "27017:27017"
+    volumes:
+      - data:/data/db/
+      - config:/data/configdb
+volumes:
+  data:
+  config:

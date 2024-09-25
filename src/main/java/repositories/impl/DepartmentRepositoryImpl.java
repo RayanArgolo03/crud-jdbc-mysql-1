@@ -1,12 +1,12 @@
 package repositories.impl;
 
-import domain.department.Department;
-import repositories.interfaces.DepartmentRepository;
 import database.DbConnection;
-import dto.departament.DepartmentDTO;
+import dtos.DepartmentResponse;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import model.department.Department;
+import repositories.interfaces.DepartmentRepository;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -59,16 +59,16 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public List<DepartmentDTO> findAll() {
+    public List<Department> findAll() {
 
         log.info("Tryning to find departments.. \n");
 
-        final List<DepartmentDTO> departments = new ArrayList<>();
+        final List<Department> departments = new ArrayList<>();
 
         try (Connection c = DbConnection.getConnection();
              ResultSet rs = this.executeFindAll(c)) {
 
-            while (rs.next()) departments.add(this.createDepartamentDTO(rs));
+//            while (rs.next()) departments.add(this.createDepartamentDTO(rs));
 
         } catch (SQLException e) {
             throw new DbConnectionException(e.getMessage());
@@ -77,19 +77,20 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         return departments;
     }
 
-    private DepartmentDTO createDepartamentDTO(final ResultSet rs) throws SQLException {
+    private Department createDepartamentDTO(final ResultSet rs) throws SQLException {
 
-        final Long id = rs.getLong("id");
-        final String name = rs.getString("name");
-        final LocalDateTime creationDate = rs.getObject("creation_date", LocalDateTime.class);
-        final LocalDateTime lastUpdateDate = rs.getObject("last_update_date", LocalDateTime.class);
+//        final Long id = rs.getLong("id");
+//        final String departmentName = rs.getString("departmentName");
+//        final LocalDateTime creationDate = rs.getObject("creation_date", LocalDateTime.class);
+//        final LocalDateTime lastUpdateDate = rs.getObject("last_update_date", LocalDateTime.class);
 
-        return DepartmentDTO.builder()
-                .id(id)
-                .name(name)
-                .creationDate(creationDate)
-                .lastUpdateDate(lastUpdateDate)
-                .build();
+//        return DepartmentDTO.builder()
+//                .id(id)
+//                .departmentName(departmentName)
+//                .creationDate(creationDate)
+//                .lastUpdateDate(lastUpdateDate)
+//                .build();
+        return null;
     }
 
     private ResultSet executeFindAll(final Connection c)
@@ -100,7 +101,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<DepartmentDTO> findById(final long id) {
+    public Optional<DepartmentResponse> findById(final long id) {
 
         log.info("Tryning to find departament with id {} \n", id);
 
@@ -131,11 +132,11 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public List<DepartmentDTO> findByName(final String name) {
+    public List<DepartmentResponse> findByName(final String name) {
 
-        log.info("Tryning to find departments with the name {} \n", name);
+        log.info("Tryning to find departments with the departmentName {} \n", name);
 
-        final List<DepartmentDTO> list = new ArrayList<>();
+        final List<DepartmentResponse> list = new ArrayList<>();
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForFindByName(c, name);
              ResultSet rs = ps.executeQuery()) {
@@ -162,11 +163,11 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public List<DepartmentDTO> findbyCreationDate(final LocalDate creationDateWithoutTime) {
+    public List<DepartmentResponse> findbyCreationDate(final LocalDate creationDateWithoutTime) {
 
         log.info("Tryning to find departments with the creation date {} \n", creationDateWithoutTime);
 
-        final List<DepartmentDTO> list = new ArrayList<>();
+        final List<DepartmentResponse> list = new ArrayList<>();
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForFindByCreationDate(c, creationDateWithoutTime);
              ResultSet rs = ps.executeQuery()) {
@@ -196,7 +197,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     @Override
     public void updateName(final Department department, final String newName) {
 
-        log.info("Tryning to update departament with the new name {} \n", newName);
+        log.info("Tryning to update departament with the new departmentName {} \n", newName);
 
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateName(c, newName, department.getId())) {
@@ -232,31 +233,31 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
 
     //Returns the count of dismissed employees
     @Override
-    public int deleteById(final long id) {
+    public int deleteById(final Object id) {
 
         log.info("Tryning to delete departament and your employees by id {} \n", id);
 
-        try (Connection c = DbConnection.getConnection();
-             PreparedStatement ps0 = this.createQueryForDeleteAssociatedEmployeesById(c, id);
-             PreparedStatement ps1 = this.createQueryForDeleteById(c, id)) {
-
-            c.setAutoCommit(false);
-
-            //Deleted associate employees
-            int employeesDismissed = ps0.executeUpdate();
-
-            //Delete department
-            if (ps1.executeUpdate() == 0) {
-                throw new DbConnectionException(String.format("Department not found by id %d!", id));
-            }
-
-            c.commit();
-            return employeesDismissed;
-
-        } catch (SQLException e) {
-            throw new DbConnectionException(e.getMessage());
-        }
-
+//        try (Connection c = DbConnection.getConnection();
+//             PreparedStatement ps0 = this.createQueryForDeleteAssociatedEmployeesById(c, id);
+//             PreparedStatement ps1 = this.createQueryForDeleteById(c, id)) {
+//
+//            c.setAutoCommit(false);
+//
+//            //Deleted associate employees
+//            int employeesDismissed = ps0.executeUpdate();
+//
+//            //Delete department
+//            if (ps1.executeUpdate() == 0) {
+//                throw new DbConnectionException(String.format("Department not found by id %d!", id));
+//            }
+//
+//            c.commit();
+//            return employeesDismissed;
+//
+//        } catch (SQLException e) {
+//            throw new DbConnectionException(e.getMessage());
+//        }
+        return 0;
     }
 
     //Dismissing all employees from the departament
@@ -291,7 +292,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     @Override
     public int deleteByName(String name) {
 
-        log.info("Tryning to delete departament and your employees by name {} \n", name);
+        log.info("Tryning to delete departament and your employees by departmentName {} \n", name);
 
         try (Connection c = DbConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForDeleteAssociatedEmployeesByName(c, name);
@@ -303,7 +304,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
 
             //Delete department
             if (ps1.executeUpdate() == 0) {
-                throw new DbConnectionException(String.format("Departments not found by name %s!", name));
+                throw new DbConnectionException(String.format("Departments not found by departmentName %s!", name));
             }
             c.commit();
 
@@ -344,14 +345,14 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         return ps;
     }
 
-    private DepartmentDTO buildDepartamentDTO(final ResultSet rs)
+    private DepartmentResponse buildDepartamentDTO(final ResultSet rs)
             throws SQLException {
-        return DepartmentDTO.builder()
-                .id(rs.getLong("id"))
-                .name(rs.getString("name"))
-                .creationDate(rs.getObject("creation_date", LocalDateTime.class))
-                .lastUpdateDate(rs.getObject("last_update_date", LocalDateTime.class))
-                .build();
-
+//        return DepartmentDTO.builder()
+//                .id(rs.getLong("id"))
+//                .departmentName(rs.getString("departmentName"))
+//                .creationDate(rs.getObject("creation_date", LocalDateTime.class))
+//                .lastUpdateDate(rs.getObject("last_update_date", LocalDateTime.class))
+//                .build();
+        return null;
     }
 }

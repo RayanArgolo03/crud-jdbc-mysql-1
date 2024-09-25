@@ -1,4 +1,4 @@
-package domain.department;
+package model.department;
 
 public enum Level {
     JUNIOR, MID, SENIOR;
