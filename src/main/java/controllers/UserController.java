@@ -1,42 +1,46 @@
 package controllers;
 
-import dtos.UserResponse;
-import model.user.User;
-import lombok.AllArgsConstructor;
-import org.bson.types.ObjectId;
+import dtos.request.UserRequest;
+import dtos.response.UserResponse;
 import services.UserService;
 import utils.ReaderUtils;
 
-@AllArgsConstructor
 public final class UserController {
 
     private final UserService service;
 
-    public User create() {
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
-        final String username = ReaderUtils.readString("username(with more than 3 characters and contain at least 1 special character):");
-        service.validateUsername(username);
+    public UserResponse create() {
+
+        String username = ReaderUtils.readString("username (with more than 3 characters and contains at least 1 special character)");
+        username = service.validateAndFormatUsername(username);
 
         //Not allow continue if user already exists in the database
-        service.findUsername(username);
+        service.checkIfUsernameExists(username);
 
-        final String password = ReaderUtils.readString("password (with more than 1 special character)");
+        final String password = ReaderUtils.readString("password (at least 1 special character)");
         service.validatePassword(password);
 
-        User user = new User(username, password);
-        service.saveUser(user);
-
-        return user;
+        return service.saveUser(new UserRequest(username, password));
     }
 
     public UserResponse find() {
+
         final String username = ReaderUtils.readString("username");
         final String password = ReaderUtils.readString("password");
+
         return service.findUser(username, password);
     }
 
-    public int delete(final ObjectId id) {
-        return service.deleteById(id);
+    public UserResponse delete() {
+
+        final String username = ReaderUtils.readString("username");
+        final String password = ReaderUtils.readString("password");
+
+        return service.findAndDelete(username, password);
     }
 
 }

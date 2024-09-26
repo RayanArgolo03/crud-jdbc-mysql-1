@@ -1,27 +1,30 @@
 package services;
 
 import com.mongodb.MongoException;
-import dtos.UserResponse;
+import dtos.request.UserRequest;
+import dtos.response.UserResponse;
 import exceptions.UserException;
-import lombok.AllArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import mappers.UserMapper;
 import model.user.User;
 import org.bson.types.ObjectId;
 import repositories.interfaces.UserRepository;
+import utils.FormatterUtils;
 
 import java.util.Objects;
 
 import static java.lang.String.format;
 
-@FieldDefaults(makeFinal = true)
-@AllArgsConstructor
 public final class UserService {
 
-    private UserRepository repository;
-    private UserMapper mapper;
+    private final UserRepository repository;
+    private final UserMapper mapper;
 
-    public void validateUsername(final String username) {
+    public UserService(UserRepository repository, UserMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    public String validateAndFormatUsername(final String username) {
 
         Objects.requireNonNull(username, "Username can´t be null!");
 
@@ -29,24 +32,32 @@ public final class UserService {
             throw new UserException(format("Username %s has less than 3 characters!", username));
         }
 
-        if (!username.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*")) {
+        if (!containsAtLeastOneSpecialCharacter(username)) {
             throw new UserException(format("Username %s not contains at least 1 special character!", username));
         }
+
+        return FormatterUtils.formatName(username);
     }
 
     public void validatePassword(final String password) {
 
         Objects.requireNonNull(password, "Password can´t be null!");
 
-        if (!password.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*")) {
+        if (!containsAtLeastOneSpecialCharacter(password)) {
             throw new UserException(format("Password %s not contains at least 1 special character!", password));
         }
     }
 
-    public void findUsername(final String username) {
-        repository.findUsername(username).ifPresent((name) -> {
-            throw new UserException(format("User with username %s already exists!", name));
-        });
+    public boolean containsAtLeastOneSpecialCharacter(final String value) {
+        return value.matches(".*[!@#$%^&*()\\-+=_{}|:;',.?/\\\\].*");
+    }
+
+    public void checkIfUsernameExists(final String username) {
+
+        if (repository.findByUsername(username).isPresent()) {
+            throw new UserException(format("User with username %s already exists!", username));
+        }
+
     }
 
     public UserResponse findUser(final String username, final String password) {
@@ -56,19 +67,31 @@ public final class UserService {
 
         return repository.findUser(username, password)
                 .map(mapper::userToResponse)
-                .orElseThrow(() -> new UserException(format("User %s not found!", username)));
+                .orElseThrow(() -> new UserException(format("User of username %s not found!", username)));
     }
 
-    public void saveUser(final User user) {
-        Objects.requireNonNull(user, "User can´t be null!");
-        repository.save(user);
-    }
+    public UserResponse saveUser(final UserRequest request) {
 
-    public int deleteById(final ObjectId id) {
+        final User user = mapper.requestToUser(request);
+
         try {
-            return repository.deleteById(id);
+            repository.save(user);
+            return mapper.userToResponse(user);
+
         } catch (MongoException e) {
-            throw new UserException(format("Error ocurred on delete: %s", e.getMessage()), e);
+            throw new UserException(format("Error ocurred on save user: %s", e.getMessage()), e.getCause());
         }
+
+    }
+
+    public UserResponse findAndDelete(final String username, final String password) {
+
+        Objects.requireNonNull(username, "Username can´t be null!");
+        Objects.requireNonNull(password, "Password can´t be null!");
+
+        return repository.findAndDelete(username, password)
+                .map(mapper::userToResponse)
+                .orElseThrow(() -> new UserException("User not found, not deleted!"));
+
     }
 }
