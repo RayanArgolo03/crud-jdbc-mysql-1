@@ -1,5 +1,5 @@
 package enums.menu;
 
-public enum MenuOption {
+public enum MainMenu {
     OUT, EMPLOYEES, DEPARTAMENTS;
 }

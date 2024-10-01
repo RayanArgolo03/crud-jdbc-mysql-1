@@ -9,15 +9,14 @@ import model.employee.NormalEmployee;
 import model.employee.SuperiorEmployee;
 import dtos.employee.EmployeeBaseDTO;
 import dtos.employee.NormalEmployeeDTO;
-import dtos.EmployeeResponse;
-import enums.employee.EmployeeDeleteOption;
-import enums.employee.EmployeeFindOption;
+import dtos.response.EmployeeResponse;
+import enums.employee.EmployeeDelete;
+import enums.employee.EmployeeFind;
 import enums.employee.EmployeeType;
-import enums.employee.EmployeeUpdateOption;
+import enums.employee.EmployeeUpdate;
 import enums.menu.YesOrNo;
 import exceptions.DbConnectionException;
 import exceptions.EmployeeException;
-import factory.EmployeeBuilderFactory;
 import mappers.interfaces.Mapper;
 import repositories.interfaces.EmployeeRepository;
 import utils.EnumListUtils;
@@ -102,7 +101,7 @@ public final class EmployeeService {
         return age;
     }
 
-    public Map<Department, Map<Level, BigDecimal>> receiveJobsInformation(final List<Department> departments) {
+    public Map<Department, Map<Level, BigDecimal>> receiveJobsInformation(final Set<Department> departments) {
 
         final Map<Department, Map<Level, BigDecimal>> dls = new HashMap<>();
 
@@ -198,7 +197,7 @@ public final class EmployeeService {
         return oldSalary.compareTo(newSalary) != 0;
     }
 
-    public List<Employee> findByOption(final EmployeeFindOption option) {
+    public List<Employee> findByOption(final EmployeeFind option) {
 
         return switch (option) {
             case ID -> {
@@ -276,7 +275,7 @@ public final class EmployeeService {
                 .collect(Collectors.toList());
     }
 
-    public void updateByOption(final EmployeeUpdateOption option, final Employee employee) {
+    public void updateByOption(final EmployeeUpdate option, final Employee employee) {
 
         switch (option) {
             case NAME -> {
@@ -360,7 +359,7 @@ public final class EmployeeService {
     }
 
 
-    public int deleteByOption(final EmployeeDeleteOption option, final List<Department> departments) {
+    public int deleteByOption(final EmployeeDelete option, final Set<Department> departments) {
 
         return switch (option) {
             case ID -> {

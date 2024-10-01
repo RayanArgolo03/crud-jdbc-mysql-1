@@ -2,7 +2,7 @@ package services;
 
 import model.department.Department;
 import model.employee.NormalEmployee;
-import dtos.DepartmentResponse;
+import dtos.response.DepartmentResponse;
 import exceptions.DbConnectionException;
 import exceptions.DepartmentException;
 import mappers.interfaces.Mapper;
@@ -123,7 +123,7 @@ class DepartmentServiceTest {
         void givenSaveDepartment_whenTheDepartmentIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.saveDepartament(null));
+                    () -> service.save(null));
 
             final String expectedMessage = "Department can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
@@ -143,7 +143,7 @@ class DepartmentServiceTest {
             ).when(repository).save(department);
 
             assertNull(department.getId());
-            service.saveDepartament(department);
+            service.save(department);
             assertEquals(expectedId, department.getId());
 
             verify(repository).save(department);
@@ -158,7 +158,7 @@ class DepartmentServiceTest {
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).save(department);
 
             final DepartmentException e = assertThrows(DepartmentException.class,
-                    () -> service.saveDepartament(department));
+                    () -> service.save(department));
 
             assertNotNull(e.getCause());
             assertEquals(expectedCauseMessage, e.getCause().getMessage());
@@ -281,7 +281,7 @@ class DepartmentServiceTest {
         @DisplayName("Should be throw DepartmentException when departments not found by departmentName passed")
         void givenFindByName_whenDepartmentsNotFoundByName_thenThrowDepartmentException() {
 
-            when(repository.findByName(name)).thenReturn(List.of());
+            when(repository.findByDepartmentName(name)).thenReturn(List.of());
 
             final DepartmentException e = assertThrows(DepartmentException.class,
                     () -> service.findByName(name));
@@ -289,7 +289,7 @@ class DepartmentServiceTest {
             final String expectedMessage = String.format("Departments not found by departmentName %s!", name);
             assertEquals(expectedMessage, e.getMessage());
 
-            verify(repository).findByName(name);
+            verify(repository).findByDepartmentName(name);
         }
 
         @Test
@@ -299,7 +299,7 @@ class DepartmentServiceTest {
             final DepartmentResponse dto1 = DepartmentResponse.builder().name(name + "a").build();
             final DepartmentResponse dto2 = DepartmentResponse.builder().name(name + "b").build();
 
-            when(repository.findByName(name)).thenReturn(List.of(dto1, dto2));
+            when(repository.findByDepartmentName(name)).thenReturn(List.of(dto1, dto2));
 
             doAnswer(param -> {
                 DepartmentResponse dtoFound = param.getArgument(0);
@@ -315,7 +315,7 @@ class DepartmentServiceTest {
             assertTrue(list.get(0).getName().contains(name));
             assertTrue(list.get(1).getName().contains(name));
 
-            verify(repository).findByName(name);
+            verify(repository).findByDepartmentName(name);
             verify(mapper, atLeast(2)).dtoToEntity(any());
         }
 

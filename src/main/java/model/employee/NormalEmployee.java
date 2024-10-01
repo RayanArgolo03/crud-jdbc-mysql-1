@@ -1,8 +1,5 @@
 package model.employee;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import model.department.Department;
 import model.department.Level;
 
@@ -15,8 +12,8 @@ public class NormalEmployee extends Employee {
 
     private final boolean hasFaculty;
 
-    private NormalEmployee(Long id, String name, String document, LocalDate birthDate, Integer age, Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries, LocalDateTime createdDate, LocalDateTime lastUpdateDate, boolean hasFaculty) {
-        super(id, name, document, birthDate, age, departmentsAndLevelsAndSalaries, createdDate, lastUpdateDate);
+    private NormalEmployee(String name, String document, LocalDate birthDate, Integer age, Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries, boolean hasFaculty) {
+        super(name, document, birthDate, age, departmentsAndLevelsAndSalaries);
         this.hasFaculty = hasFaculty;
     }
 
@@ -40,11 +37,6 @@ public class NormalEmployee extends Employee {
 
         public static NormalEmployeeBuilder aNormalEmployee() {
             return new NormalEmployeeBuilder();
-        }
-
-        public NormalEmployeeBuilder id(Long id) {
-            this.id = id;
-            return this;
         }
 
         public NormalEmployeeBuilder name(String name) {
@@ -72,23 +64,13 @@ public class NormalEmployee extends Employee {
             return this;
         }
 
-        public NormalEmployeeBuilder createdDate(LocalDateTime createdDate) {
-            this.createdDate = createdDate;
-            return this;
-        }
-
-        public NormalEmployeeBuilder lastUpdateDate(LocalDateTime lastUpdateDate) {
-            this.lastUpdateDate = lastUpdateDate;
-            return this;
-        }
-
         public NormalEmployeeBuilder hasFaculty(boolean hasFaculty) {
             this.hasFaculty = hasFaculty;
             return this;
         }
 
         public NormalEmployee build() {
-            return new NormalEmployee(id, name, document, birthDate, age, departmentsAndLevelsAndSalaries, createdDate, lastUpdateDate, hasFaculty);
+            return new NormalEmployee(name, document, birthDate, age, departmentsAndLevelsAndSalaries, hasFaculty);
         }
     }
 }

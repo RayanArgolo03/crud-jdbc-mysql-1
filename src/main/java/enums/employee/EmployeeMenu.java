@@ -1,5 +1,5 @@
 package enums.employee;
 
-public enum EmployeeMenuOption {
+public enum EmployeeMenu {
     OUT, HIRE, UPDATE, SHOW, DELETE;
 }

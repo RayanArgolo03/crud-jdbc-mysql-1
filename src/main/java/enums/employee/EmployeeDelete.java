@@ -1,6 +1,6 @@
 package enums.employee;
 
 
-public enum EmployeeDeleteOption {
+public enum EmployeeDelete {
     ID, NAME, DOCUMENT, HIRE_DATE, DEPARTMENT;
 }

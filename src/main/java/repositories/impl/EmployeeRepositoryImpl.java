@@ -2,14 +2,14 @@ package repositories.impl;
 
 import model.department.Department;
 import repositories.interfaces.EmployeeRepository;
-import database.DbConnection;
+import database.HibernateConnection;
 import model.department.Level;
 import model.employee.Employee;
 import model.employee.NormalEmployee;
 import model.employee.SuperiorEmployee;
 import dtos.employee.EmployeeBaseDTO;
 import dtos.employee.NormalEmployeeDTO;
-import dtos.EmployeeResponse;
+import dtos.response.EmployeeResponse;
 import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,7 +31,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         log.info("Tryning to save {}.. \n", employee.getName());
 
         //If error occurs, not open; if not occurs, open and close in save specific employee
-        final Connection c = DbConnection.getConnection();
+        final Connection c = HibernateConnection.getConnection();
 
         try (PreparedStatement ps = this.createQueryForSaveBaseEmployee(c,
                 employee.getName(),
@@ -155,7 +155,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         log.info("Tryning to save {} with your type in inheritance table \n", ne.getName());
 
         //Get opened connection!
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForSaveNormalEmp(c, ne.getId(),
                      ne.isHasFaculty())) {
 
@@ -191,7 +191,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         log.info("Tryning to save {} with your type in inheritance table \n", se.getName());
 
         //Get opened connection!
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForSaveSuperiorEmp(c, se.getId(),
                      se.getWorkExperience())) {
 
@@ -224,7 +224,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Updating departmentName of employee {} \n", employee.getName());
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateName(c, newName, employee.getId())) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee departmentName!");
@@ -254,7 +254,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Updating document of employee {} \n", employee.getName());
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateDocument(c, newDocument, employee.getId())) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee document!");
@@ -288,7 +288,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Updating seniority of employee {} \n", employee.getName());
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateLevel(c, department.getId(), employee.getId(), newLevel)) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee level!");
@@ -332,7 +332,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Updating salary of employee {} \n", employee.getName());
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForUpdateSalary(c, department.getId(), employee.getId(), newSalary)) {
 
             if (ps.executeUpdate() == 0) throw new DbConnectionException("Error in update employee salary!");
@@ -374,7 +374,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Tryning to find by id {} \n", employeeId);
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForFindBaseEmployeeById(c, employeeId);
              ResultSet rs0 = ps0.executeQuery()) {
 
@@ -413,7 +413,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         log.info("Tryning to find by departmentName {} \n", name);
 
         final List<EmployeeBaseDTO> list = new ArrayList<>();
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForFindByName(c, name);
              ResultSet rs0 = ps0.executeQuery()) {
 
@@ -450,7 +450,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Tryning to find by document {} \n", document);
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForFindByDocument(c, document);
              ResultSet rs0 = ps0.executeQuery()) {
 
@@ -485,7 +485,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         log.info("Tryning to find by hire date {} \n", hireDateWithoutTime);
         final List<EmployeeBaseDTO> list = new ArrayList<>();
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForFindByHireDate(c, hireDateWithoutTime);
              ResultSet rs0 = ps0.executeQuery()) {
 
@@ -522,7 +522,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         final List<EmployeeBaseDTO> list = new ArrayList<>();
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps0 = this.createQueryForFindByAge(c, age);
              ResultSet rs0 = ps0.executeQuery()) {
 
@@ -556,7 +556,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Tryning to delete employee with id {} \n", id);
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForDeleteById(c, id)) {
 
             final int deletedRows = ps.executeUpdate();
@@ -591,7 +591,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Tryning to delete employees called {} \n", name);
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForDeleteByName(c, name)) {
 
             final int deletedRows = ps.executeUpdate();
@@ -625,7 +625,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         log.info("Tryning to delete employee with a document {} \n", document);
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForDeleteByDocument(c, document)) {
 
             int deletedRows = ps.executeUpdate();
@@ -656,7 +656,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public int deleteByHireDate(final LocalDate hireDateWithoutTime) {
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForDeleteHireDate(c, hireDateWithoutTime)) {
 
             int deletedRows = ps.executeUpdate();
@@ -689,7 +689,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public int deleteByDepartment(final Department department) {
 
-        try (Connection c = DbConnection.getConnection();
+        try (Connection c = HibernateConnection.getConnection();
              PreparedStatement ps = this.createQueryForDeleteByDepartament(c, department.getId())) {
 
             int deletedRows = ps.executeUpdate();

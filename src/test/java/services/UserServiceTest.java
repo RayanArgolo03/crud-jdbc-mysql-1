@@ -1,7 +1,7 @@
 package services;
 
 import model.user.User;
-import dtos.UserResponse;
+import dtos.response.UserResponse;
 import exceptions.UserException;
 import mappers.interfaces.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class UserServiceTest {
         void givenValidateUsername_whenUsernameIsNull_thenThrowNullPointerException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.validateUsername(null));
+                    () -> service.validateAndFormatUsername(null));
 
             final String expected = "Username can´t be null!";
             assertEquals(expected, e.getMessage());
@@ -50,7 +50,7 @@ class UserServiceTest {
 
             final String username = "a";
             final UserException e = assertThrows(UserException.class,
-                    () -> service.validateUsername(username)
+                    () -> service.validateAndFormatUsername(username)
             );
 
             final String expectedMessage = String.format("Username %s has less than 3 characters!", username);
@@ -63,7 +63,7 @@ class UserServiceTest {
 
             final String username = "Abc";
             final UserException e = assertThrows(UserException.class,
-                    () -> service.validateUsername(username));
+                    () -> service.validateAndFormatUsername(username));
 
             final String expectedMessage = String.format("Username %s not contains at least 1 special character!", username);
             assertEquals(expectedMessage, e.getMessage());
@@ -117,24 +117,24 @@ class UserServiceTest {
         @DisplayName("Should be throw User Exception when the username already exists")
         void givenFindUsername_whenUsernameAlreadyExists_thenThrowUserException() {
 
-            when(repository.findUsername(username)).thenReturn(Optional.of(username));
+            when(repository.findByUsername(username)).thenReturn(Optional.of(username));
 
             final UserException e = assertThrows(UserException.class,
-                    () -> service.findUsername(username));
+                    () -> service.checkIfUsernameExists(username));
 
             final String expectedMessage = String.format("User with username %s already exists!", username);
             assertEquals(expectedMessage, e.getMessage());
 
-            verify(repository).findUsername(username);
+            verify(repository).findByUsername(username);
             verifyNoMoreInteractions(repository);
         }
 
         @Test
         @DisplayName("Should be continue when the username not exists")
         void givenFindUsername_whenUsernameNotExists_thenNotThrowException() {
-            when(repository.findUsername(username)).thenReturn(Optional.empty());
-            assertDoesNotThrow(() -> service.findUsername(username));
-            verify(repository).findUsername(username);
+            when(repository.findByUsername(username)).thenReturn(Optional.empty());
+            assertDoesNotThrow(() -> service.checkIfUsernameExists(username));
+            verify(repository).findByUsername(username);
             verifyNoMoreInteractions(repository);
         }
     }
@@ -269,7 +269,7 @@ class UserServiceTest {
         void givenDeleteUser_whenUserIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.deleteById(null));
+                    () -> service.findAndDelete(null));
 
             final String expectedMessage = "User can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
@@ -285,7 +285,7 @@ class UserServiceTest {
 
             when(repository.deleteById(user.getId())).thenReturn(idIntExpected);
 
-            assertEquals(idIntExpected, service.deleteById(user));
+            assertEquals(idIntExpected, service.findAndDelete(user));
 
             verify(repository).deleteById(user.getId());
         }
@@ -299,7 +299,7 @@ class UserServiceTest {
             when(repository.deleteById(user.getId())).thenThrow(expectedCause);
 
             final UserException e = assertThrows(UserException.class,
-                    () -> service.deleteById(user));
+                    () -> service.findAndDelete(user));
             assertEquals(expectedCause, e.getCause());
 
             final String expectedMessage = String.format("Id %d is too long to convert, undo workaround :)", user.getId());

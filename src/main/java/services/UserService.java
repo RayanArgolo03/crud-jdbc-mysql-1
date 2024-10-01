@@ -26,8 +26,6 @@ public final class UserService {
 
     public String validateAndFormatUsername(final String username) {
 
-        Objects.requireNonNull(username, "Username can´t be null!");
-
         if (username.length() < 3) {
             throw new UserException(format("Username %s has less than 3 characters!", username));
         }
@@ -40,8 +38,6 @@ public final class UserService {
     }
 
     public void validatePassword(final String password) {
-
-        Objects.requireNonNull(password, "Password can´t be null!");
 
         if (!containsAtLeastOneSpecialCharacter(password)) {
             throw new UserException(format("Password %s not contains at least 1 special character!", password));
@@ -61,9 +57,6 @@ public final class UserService {
     }
 
     public UserResponse findUser(final String username, final String password) {
-
-        Objects.requireNonNull(username, "Username can´t be null!");
-        Objects.requireNonNull(password, "Password can´t be null!");
 
         return repository.findUser(username, password)
                 .map(mapper::userToResponse)
@@ -85,9 +78,6 @@ public final class UserService {
     }
 
     public UserResponse findAndDelete(final String username, final String password) {
-
-        Objects.requireNonNull(username, "Username can´t be null!");
-        Objects.requireNonNull(password, "Password can´t be null!");
 
         return repository.findAndDelete(username, password)
                 .map(mapper::userToResponse)

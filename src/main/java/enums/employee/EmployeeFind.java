@@ -1,6 +1,6 @@
 package enums.employee;
 
 
-public enum EmployeeFindOption {
+public enum EmployeeFind {
     ID, NAME, DOCUMENT, AGE, HIRE_DATE,
 }

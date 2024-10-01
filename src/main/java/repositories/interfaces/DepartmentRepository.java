@@ -1,22 +1,34 @@
 package repositories.interfaces;
 
+import criteria.DepartmentFilter;
 import model.department.Department;
-import dtos.DepartmentResponse;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
+import java.util.Set;
 
 public interface DepartmentRepository extends EntityRepository<Department> {
-    List<Department> findAll();
+    Set<Department> findAll();
 
-    List<DepartmentResponse> findByName(String name);
+    Set<Department> findbyFilters(DepartmentFilter filters);
 
-    Optional<DepartmentResponse> findById(long id);
+    Optional<Department> findByDepartmentName(String departmentName);
 
-    List<DepartmentResponse> findbyCreationDate(LocalDate creationDateWithoutTime);
+    Optional<Department> findByCreationDate(LocalDate creationDate);
 
-    void updateName(Department department, String newName);
+    Optional<Department> findByUpdateDate(LocalDateTime updateDate);
 
-    int deleteByName(String name);
+    Optional<Department> findByUpdateTime(LocalTime updateTime);
+
+    Optional<Department> findByEmployeeName(String employeeName);
+
+    Optional<Department> findByEmployeeAge(Integer employeeAge);
+
+    Optional<Department> findByEmployeeHireDate(LocalDate employeHireDate);
+
+    Department updateName(Department department, String newName);
+
+    Optional<Department> findAndDelete(String name);
 }

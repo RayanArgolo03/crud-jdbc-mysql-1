@@ -1,20 +1,12 @@
 package utils;
 
-import enums.menu.DefaultMessage;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
-
-import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Scanner;
 
 public final class ReaderUtils {
 
     private static final Scanner SCANNER = new Scanner(System.in);
 
-    private ReaderUtils() {
-    }
+    private ReaderUtils() {}
 
     public static <T extends Enum<T>> T readEnum(final String title, final Class<T> enumClass) {
 
@@ -30,7 +22,8 @@ public final class ReaderUtils {
         return enumConstants[option - 1];
     }
 
-    public static int readInt() {
+    public static int readInt(final String title) {
+        System.out.printf("Enter with %s:\n", title);
         return SCANNER.nextInt();
     }
 

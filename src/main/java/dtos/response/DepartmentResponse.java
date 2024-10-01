@@ -1,4 +1,4 @@
-package dtos;
+package dtos.response;
 
 public record DepartmentResponse(String departmentName, String createdDate, String lastUpdateDate) {
 

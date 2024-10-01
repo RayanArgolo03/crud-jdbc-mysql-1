@@ -7,7 +7,7 @@ import model.employee.NormalEmployee;
 import model.employee.SuperiorEmployee;
 import dtos.base.BaseDto;
 import dtos.employee.NormalEmployeeDTO;
-import dtos.EmployeeResponse;
+import dtos.response.EmployeeResponse;
 import enums.employee.EmployeeType;
 import enums.menu.YesOrNo;
 import exceptions.DbConnectionException;
@@ -858,7 +858,7 @@ class EmployeeServiceTest {
 
             assertEquals(1, list.size());
             assertInstanceOf(SuperiorEmployee.class, list.get(0));
-            assertEquals(hireDate, list.get(0).getCreatedDate());
+            assertEquals(hireDate, list.get(0).getHireDate());
 
             verify(repository).findByHireDate(hireDateWithoutTime);
             verify(mapper).dtoToEntity(dto);

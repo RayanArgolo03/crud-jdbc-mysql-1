@@ -4,13 +4,13 @@ package app;
 import controllers.DepartmentController;
 import controllers.EmployeeController;
 import controllers.UserController;
-import dtos.UserResponse;
-import enums.departament.DepartmentMenuOption;
-import enums.employee.EmployeeMenuOption;
-import enums.menu.DefaultMessage;
-import enums.menu.MenuOption;
-import enums.UserOption;
-import exceptions.EmployeeException;
+import database.HibernateConnection;
+import database.MongoConnection;
+import dtos.response.UserResponse;
+import enums.department.DepartmentMenu;
+import enums.user.UserOption;
+import enums.employee.EmployeeMenu;
+import enums.menu.MainMenu;
 import lombok.extern.log4j.Log4j2;
 import mappers.DepartmentMapper;
 import mappers.EmployeeMapper;
@@ -24,7 +24,6 @@ import repositories.impl.UserRepositoryImpl;
 import services.DepartmentService;
 import services.EmployeeService;
 import services.UserService;
-import utils.EnumListUtils;
 import utils.ReaderUtils;
 
 import java.util.InputMismatchException;
@@ -36,14 +35,17 @@ public final class Application {
     private Application() {
     }
 
+    private final static MongoConnection MONGO = MongoConnection.getINSTANCE();
+    private final static HibernateConnection HIBERNATE = HibernateConnection.getINSTANCE("mysql");
+
     private final static DepartmentController DC = new DepartmentController(
-            new DepartmentService(new DepartmentRepositoryImpl(), Mappers.getMapper(DepartmentMapper.class))
+            new DepartmentService(new DepartmentRepositoryImpl(HIBERNATE), Mappers.getMapper(DepartmentMapper.class))
     );
     private final static EmployeeController EC = new EmployeeController(
             new EmployeeService(new EmployeeRepositoryImpl(), Mappers.getMapper(EmployeeMapper.class))
     );
     private final static UserController UC = new UserController(
-            new UserService(new UserRepositoryImpl(), Mappers.getMapper(UserMapper.class))
+            new UserService(new UserRepositoryImpl(MONGO), Mappers.getMapper(UserMapper.class))
     );
 
     public static void main(String[] args) {
@@ -53,68 +55,66 @@ public final class Application {
 
     public static void mainMenu() {
 
-        UserOption option;
-
-        while ((option = ReaderUtils.readEnum("user option", UserOption.class)) != UserOption.OUT) {
+        UserOption option = null;
+        do {
 
             try {
-                option =;
+                option = ReaderUtils.readEnum("user option", UserOption.class);
 
                 UserResponse user;
                 switch (option) {
+
                     case LOGIN -> {
                         user = UC.find();
                         loginMenu(user.username());
                     }
-                    case CREATE_USER -> {
-                        loginMenu(UC.create().getUsername());
-                    }
+
+                    case CREATE_USER -> loginMenu(UC.create().username());
+
                     case DELETE_USER -> {
-                        user = UC.find();
-                        System.out.printf("User %s has been deleted!\n", UC.delete(user.id()));
+                        System.out.printf("User %s has been deleted!\n", UC.delete());
                     }
                 }
 
             } catch (InputMismatchException e) {
-                log.error(DefaultMessage.INVALID.getValue());
+                log.fatal("Invalid entry! Stopping the program..");
                 System.exit(0);
+
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
 
+        } while (option != UserOption.OUT);
 
-        }
     }
+
 
     private static void loginMenu(final String username) {
 
         log.info("{} logged into the system! \n", username);
 
-        final MenuOption option = ReaderUtils.readElement("menu option",
-                EnumListUtils.getEnumList(MenuOption.class));
+        switch (ReaderUtils.readEnum("menu option", MainMenu.class)) {
 
-        switch (option) {
-            case OUT -> log.info("Logout {}.. \n", username);
+            case OUT -> log.info("Logout by {}.. \n", username);
+
             case EMPLOYEES -> employeesMenu();
-            case DEPARTAMENTS -> departamentsMenu();
+
+            case DEPARTAMENTS -> departmentsMenu();
         }
 
     }
 
     private static void employeesMenu() {
 
+        EmployeeMenu option = null;
         do {
+
             try {
-                EmployeeMenuOption option = ReaderUtils.readElement("employee option",
-                        EnumListUtils.getEnumList(EmployeeMenuOption.class));
+                option = ReaderUtils.readEnum("employee option", EmployeeMenu.class);
 
                 switch (option) {
-                    case OUT -> {
-                        return;
-                    }
-                    case HIRE -> {
-                        EC.create(DC.findAll());
-                    }
+                    case HIRE -> EC.create(DC.findAll());
+
                     case UPDATE -> {
 
                         final List<Employee> employeesFound = EC.find();
@@ -134,61 +134,59 @@ public final class Application {
                 }
 
             } catch (InputMismatchException e) {
-                log.error(DefaultMessage.INVALID.getValue());
+                log.fatal("Invalid entry! Stopping the program..");
                 System.exit(0);
-            } catch (EmployeeException e) {
+
+            } catch (Exception e) {
                 log.error(e.getMessage());
             }
 
-        } while (true);
+        } while (option != EmployeeMenu.OUT);
 
     }
 
-    private static void departamentsMenu() {
+    private static void departmentsMenu() {
 
+        DepartmentMenu option = null;
         do {
-            try {
 
-                DepartmentMenuOption option = ReaderUtils.readElement(
-                        "departament option",
-                        EnumListUtils.getEnumList(DepartmentMenuOption.class)
-                );
+            try {
+                option = ReaderUtils.readEnum("Department option", DepartmentMenu.class);
 
                 switch (option) {
-                    case CREATE -> {
-                        DC.create();
-                    }
+                    case CREATE -> log.info("Department created: {}", DC.create());
+
                     case UPDATE -> {
 
-                        final List<Department> departamentsFound = DC.find();
-                        ;
+                        Department department;
 
-                        final Department department = DC.chooseDepartamentToUpdate(departamentsFound);
-                        System.out.printf("\nDepartament before update:\n%s", department);
+                        if ((department = DC.findByOption()) != null) {
+                            System.out.printf("Department found:\n%s", department);
+                            System.out.printf("\n ----- Department after update:\n%s", DC.update(department));
+                        }
+                    }
 
-                        DC.update(department);
-                        System.out.printf("\nDepartament after update:\n%s", department);
-                    }
-                    case SHOW -> {
-                        DC.find().forEach(d -> System.out.printf("%s\n", d));
-                    }
+                    case SHOW -> DC.findByFilters().forEach(d -> System.out.printf("%s\n", d));
+
                     case DELETE -> {
-                        System.out.printf("Departament closed! %d employees dismissed! \n", DC.delete());
-                    }
-                    case OUT -> {
-                        return;
+
+                        final Department department = DC.findAndDelete();
+                        System.out.printf("Department %s closed! %d employees dismissed! \n", department.getName(), department.getEmployees().size());
+
                     }
 
                 }
 
             } catch (InputMismatchException e) {
-                log.error(DefaultMessage.INVALID.getValue());
+                log.fatal("Invalid entry! Stopping the program..");
                 System.exit(0);
+
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
 
-        } while (true);
+        } while (option != DepartmentMenu.OUT);
+
 
     }
 

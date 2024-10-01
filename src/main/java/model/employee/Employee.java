@@ -14,20 +14,19 @@ public abstract class Employee {
     private String name;
     private String document;
     private final LocalDate birthDate;
-    private Integer age;
+    private final Integer age;
     private final Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries;
-    private final LocalDateTime createdDate;
+    private final LocalDateTime hireDate;
     private LocalDateTime lastUpdateDate;
 
-    protected Employee(Long id, String name, String document, LocalDate birthDate, Integer age, Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries, LocalDateTime createdDate, LocalDateTime lastUpdateDate) {
-        this.id = id;
+    protected Employee(String name, String document, LocalDate birthDate, Integer age, Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries) {
         this.name = name;
         this.document = document;
         this.birthDate = birthDate;
         this.age = age;
         this.departmentsAndLevelsAndSalaries = departmentsAndLevelsAndSalaries;
-        this.createdDate = createdDate;
-        this.lastUpdateDate = lastUpdateDate;
+        this.hireDate = LocalDateTime.now();
+        this.lastUpdateDate = LocalDateTime.now();
     }
 
     public void setId(Long id) {
@@ -70,8 +69,8 @@ public abstract class Employee {
         return departmentsAndLevelsAndSalaries;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public LocalDateTime getHireDate() {
+        return hireDate;
     }
 
     public LocalDateTime getLastUpdateDate() {
