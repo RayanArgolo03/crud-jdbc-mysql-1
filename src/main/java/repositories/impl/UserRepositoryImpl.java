@@ -4,7 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import database.MongoConnection;
 import lombok.extern.log4j.Log4j2;
-import model.user.User;
+import model.User;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import repositories.interfaces.UserRepository;

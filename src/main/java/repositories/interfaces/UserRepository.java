@@ -1,7 +1,6 @@
 package repositories.interfaces;
 
-import dtos.response.UserResponse;
-import model.user.User;
+import model.User;
 
 import java.util.Optional;
 

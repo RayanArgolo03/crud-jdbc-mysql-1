@@ -1,10 +1,10 @@
 package services;
 
-import model.department.Department;
-import model.department.Level;
-import model.employee.Employee;
-import model.employee.NormalEmployee;
-import model.employee.SuperiorEmployee;
+import model.Department;
+import model.Level;
+import model.Employee;
+import model.NormalEmployee;
+import model.SuperiorEmployee;
 import dtos.base.BaseDto;
 import dtos.employee.NormalEmployeeDTO;
 import dtos.response.EmployeeResponse;
@@ -108,7 +108,7 @@ class EmployeeServiceTest {
         void givenValidateDocument_whenDocumentIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
-                    () -> service.validateDocument(null));
+                    () -> service.validateAndFormatDocument(null));
 
             final String expectedMessage = "Document can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
@@ -123,7 +123,7 @@ class EmployeeServiceTest {
             assertNotNull(document);
 
             final EmployeeException e = assertThrows(EmployeeException.class,
-                    () -> service.validateDocument(document));
+                    () -> service.validateAndFormatDocument(document));
 
             final String expectedMessage = String.format("Invalid document: %s does not match the pattern!", document);
             assertEquals(expectedMessage, e.getMessage());
@@ -134,7 +134,7 @@ class EmployeeServiceTest {
         @DisplayName("Should be continue when the document is valid")
         void givenValidateDocument_whenDocumentIsValid_thenDoesNotThrow(final String document) {
             assertNotNull(document);
-            assertDoesNotThrow(() -> service.validateDocument(document));
+            assertDoesNotThrow(() -> service.validateAndFormatDocument(document));
         }
     }
 

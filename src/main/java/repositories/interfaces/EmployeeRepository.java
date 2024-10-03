@@ -1,10 +1,10 @@
 package repositories.interfaces;
 
-import model.department.Department;
-import model.department.Level;
-import model.employee.Employee;
-import model.employee.NormalEmployee;
-import model.employee.SuperiorEmployee;
+import model.Department;
+import model.Level;
+import model.Employee;
+import model.NormalEmployee;
+import model.SuperiorEmployee;
 import dtos.employee.EmployeeBaseDTO;
 
 import java.math.BigDecimal;

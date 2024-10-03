@@ -2,7 +2,7 @@ package mappers;
 
 import dtos.request.UserRequest;
 import dtos.response.UserResponse;
-import model.user.User;
+import model.User;
 import org.mapstruct.Mapper;
 
 @Mapper

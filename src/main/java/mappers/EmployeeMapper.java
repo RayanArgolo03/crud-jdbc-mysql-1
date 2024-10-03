@@ -1,7 +1,7 @@
 package mappers;
 
 import dtos.response.EmployeeResponse;
-import model.employee.Employee;
+import model.Employee;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import utils.FormatterUtils;

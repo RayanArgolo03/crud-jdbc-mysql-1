@@ -4,8 +4,8 @@ import criteria.DepartmentFilter;
 import database.HibernateConnection;
 import jakarta.persistence.criteria.*;
 import lombok.extern.log4j.Log4j2;
-import model.department.Department;
-import model.employee.Employee;
+import model.Department;
+import model.Employee;
 import repositories.interfaces.DepartmentRepository;
 
 import java.time.LocalDate;
@@ -235,9 +235,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Department updateName(final Department department, final String newName) {
+    public void updateName(final Department department, final String newName) {
         connection.execute((manager) -> department.setName(newName));
-        return department;
     }
 
 

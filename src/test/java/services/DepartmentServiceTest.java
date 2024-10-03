@@ -1,7 +1,7 @@
 package services;
 
-import model.department.Department;
-import model.employee.NormalEmployee;
+import model.Department;
+import model.NormalEmployee;
 import dtos.response.DepartmentResponse;
 import exceptions.DbConnectionException;
 import exceptions.DepartmentException;

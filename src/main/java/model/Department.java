@@ -1,7 +1,9 @@
-package model.department;
+package model;
 
 import jakarta.persistence.*;
-import model.employee.Employee;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -11,6 +13,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Set;
+
+@Getter
+@Setter
+@NoArgsConstructor(force = true)
 
 @Entity
 @Table(name = "departments")
@@ -43,42 +49,6 @@ public class Department {
         this.name = name;
         this.createdDate = null;
         this.lastUpdateDate = null;
-    }
-
-    public Department() {
-        createdDate = null;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setLastUpdateDate(LocalDateTime lastUpdateDate) {
-        this.lastUpdateDate = lastUpdateDate;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Set<Employee> getEmployees() {
-        return employees;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public LocalDateTime getLastUpdateDate() {
-        return lastUpdateDate;
     }
 
     @Override

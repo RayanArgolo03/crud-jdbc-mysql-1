@@ -1,7 +1,7 @@
 package repositories.interfaces;
 
 import criteria.DepartmentFilter;
-import model.department.Department;
+import model.Department;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ public interface DepartmentRepository extends EntityRepository<Department> {
 
     Optional<Department> findByEmployeeHireDate(LocalDate employeHireDate);
 
-    Department updateName(Department department, String newName);
+    void updateName(Department department, String newName);
 
     Optional<Department> findAndDelete(String name);
 }

@@ -3,14 +3,13 @@ package services;
 import criteria.DepartmentFilter;
 import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
-import enums.department.DepartmentDelete;
 import enums.department.DepartmentFind;
 import enums.department.DepartmentUpdate;
 import exceptions.DatabaseException;
 import exceptions.DepartmentException;
 import lombok.extern.log4j.Log4j2;
 import mappers.DepartmentMapper;
-import model.department.Department;
+import model.Department;
 import org.hibernate.exception.ConstraintViolationException;
 import repositories.interfaces.DepartmentRepository;
 import utils.FormatterUtils;
@@ -292,9 +291,4 @@ public final class DepartmentService {
 
     }
 
-
-    public int delete(final Department department) {
-
-
-    }
 }

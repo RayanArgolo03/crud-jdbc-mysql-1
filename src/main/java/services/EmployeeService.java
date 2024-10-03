@@ -1,23 +1,19 @@
 package services;
 
 
-import mappers.EmployeeMapper;
-import model.department.Department;
-import model.department.Level;
-import model.employee.Employee;
-import model.employee.NormalEmployee;
-import model.employee.SuperiorEmployee;
-import dtos.employee.EmployeeBaseDTO;
-import dtos.employee.NormalEmployeeDTO;
 import dtos.response.EmployeeResponse;
 import enums.employee.EmployeeDelete;
 import enums.employee.EmployeeFind;
 import enums.employee.EmployeeType;
 import enums.employee.EmployeeUpdate;
 import enums.menu.YesOrNo;
-import exceptions.DbConnectionException;
 import exceptions.EmployeeException;
-import mappers.interfaces.Mapper;
+import mappers.EmployeeMapper;
+import model.Department;
+import model.Level;
+import model.Employee;
+import model.NormalEmployee;
+import model.SuperiorEmployee;
 import repositories.interfaces.EmployeeRepository;
 import utils.EnumListUtils;
 import utils.FormatterUtils;
@@ -28,10 +24,13 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static utils.ReaderUtils.*;
+import static java.lang.String.format;
+import static utils.ReaderUtils.readInt;
+import static utils.ReaderUtils.readString;
 
 public final class EmployeeService {
 
@@ -45,35 +44,36 @@ public final class EmployeeService {
 
     public String validateAndFormatName(final String name) {
 
-        Objects.requireNonNull(name, "Name can´t be null!");
+        if (name.length() < 3) throw new EmployeeException("Short name!");
 
-        if (name.length() < 3) throw new EmployeeException(String.format("%s is a small departmentName!", name));
-
-        if (!name.matches("^[A-Za-z]+((\\s)?((['\\-.])?([A-Za-z])+))*$")) {
-            throw new EmployeeException(String.format("%s contains special characters!", name));
+        if (!name.matches("^[A-Za-zÀ-ÖØ-öø-ÿ]+$")) {
+            throw new EmployeeException(format("%s contains special characters!", name));
         }
 
         return FormatterUtils.formatName(name);
 
     }
 
-    public void validateDocument(final String document) {
-
-        Objects.requireNonNull(document, "Document can´t be null!");
+    public String validateAndFormatDocument(final String document) {
 
         if (!document.matches("(^\\d{3}\\x2E\\d{3}\\x2E\\d{3}\\x2D\\d{2}$)")) {
-            throw new EmployeeException(String.format("Invalid document: %s does not match the pattern!", document));
+            throw new EmployeeException(format("CPF %s does not match the patern xxx.xxx.xxx-xx with symbols!", document));
         }
+
+        return document.replaceAll("[^0-9]", "");
 
     }
 
-    public LocalDate parseAndValidateDate(final String dateInString) {
-        Objects.requireNonNull(dateInString, "Birth date can´t be null");
+    public LocalDate parseAndValidateDate(final String value) {
+
         try {
-            return LocalDate.parse(dateInString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            return LocalDate.parse(value, DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    .withResolverStyle(ResolverStyle.STRICT));
+
         } catch (DateTimeParseException e) {
-            throw new EmployeeException(String.format("Invalid date! %s does not match the pattern dd/MM/yyyy!", dateInString), e);
+            throw new EmployeeException(format("Invalid date! %s does not match the pattern dd/MM/yyyy!", value), e);
         }
+
     }
 
     public BigDecimal validateAndFormatSalary(final String salaryInString) {
@@ -81,7 +81,7 @@ public final class EmployeeService {
         Objects.requireNonNull(salaryInString, "Salary can´t be null!");
 
         if (!salaryInString.matches("^[0-9]+([.,][0-9]{1,2})?$")) {
-            throw new EmployeeException(String.format("%s does not match the pattern!", salaryInString));
+            throw new EmployeeException(format("%s does not match the pattern!", salaryInString));
         }
 
         return new BigDecimal(FormatterUtils.formatMoney(salaryInString));
@@ -92,13 +92,9 @@ public final class EmployeeService {
 
         final Period p = birthDate.until(LocalDate.now());
 
-        final int age = (p.getMonths() == 0 && p.getDays() == 0)
+        return (p.getMonths() == 0 && p.getDays() == 0)
                 ? p.getYears() //It´s aniversary
                 : p.getYears() - 1;
-
-        if (age < 18) throw new EmployeeException("Employee has less than eighteen years!");
-
-        return age;
     }
 
     public Map<Department, Map<Level, BigDecimal>> receiveJobsInformation(final Set<Department> departments) {
@@ -155,7 +151,7 @@ public final class EmployeeService {
     public void defineSpecificAtributtes(final Employee employee) {
 
         if (employee instanceof NormalEmployee ne) {
-            String title = String.format("Employee %s has faculty?", ne.getName());
+            String title = format("Employee %s has faculty?", ne.getName());
             defineHasFaculty(ne, readElement(title, EnumListUtils.getEnumList(YesOrNo.class)));
         } else if (employee instanceof SuperiorEmployee se) {
             defineWorkExperience(se, se.getAge(), readInt("Valid Work experience (more than one year and less than the employee age)"));
@@ -183,7 +179,7 @@ public final class EmployeeService {
         try {
             repository.save(employee);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error in save: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error in save: %s", e.getMessage()), e);
         }
     }
 
@@ -228,7 +224,7 @@ public final class EmployeeService {
     public List<Employee> findById(final long employeeId) {
         return Collections.singletonList(repository.findById(employeeId)
                 .map(this::mappperToSpecificEntity)
-                .orElseThrow(() -> new EmployeeException(String.format("Employee with id %d not found!", employeeId))));
+                .orElseThrow(() -> new EmployeeException(format("Employee with id %d not found!", employeeId))));
     }
 
     public List<Employee> findByName(final String name) {
@@ -236,7 +232,8 @@ public final class EmployeeService {
         Objects.requireNonNull(name, "Name can´t be null");
 
         final List<EmployeeBaseDTO> list = repository.findByName(name);
-        if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by departmentName %s!", name));
+        if (list.isEmpty())
+            throw new EmployeeException(format("Employees not found by departmentName %s!", name));
 
         return list.stream()
                 .map(this::mappperToSpecificEntity)
@@ -249,13 +246,13 @@ public final class EmployeeService {
 
         return Collections.singletonList(repository.findByDocument(document)
                 .map(this::mappperToSpecificEntity)
-                .orElseThrow(() -> new EmployeeException(String.format("Employee not found by document %s!", document))));
+                .orElseThrow(() -> new EmployeeException(format("Employee not found by document %s!", document))));
     }
 
     public List<Employee> findByAge(final int age) {
 
         final List<EmployeeBaseDTO> list = repository.findByAge(age);
-        if (list.isEmpty()) throw new EmployeeException(String.format("Employees not found by age %d!", age));
+        if (list.isEmpty()) throw new EmployeeException(format("Employees not found by age %d!", age));
 
         return list.stream()
                 .map(this::mappperToSpecificEntity)
@@ -267,7 +264,7 @@ public final class EmployeeService {
         final List<EmployeeBaseDTO> list = repository.findByHireDate(hireDateWithoutTime);
 
         if (list.isEmpty()) {
-            throw new EmployeeException(String.format("Employees not found by hire date %s!", DateTimeFormatter.ofPattern("dd/MM/yyyy").format(hireDateWithoutTime)));
+            throw new EmployeeException(format("Employees not found by hire date %s!", DateTimeFormatter.ofPattern("dd/MM/yyyy").format(hireDateWithoutTime)));
         }
 
         return list.stream()
@@ -316,7 +313,7 @@ public final class EmployeeService {
                         .get();
 
                 //Validate null salary here
-                final String salaryInString = readString(String.format("new salary (different from the current salary, %s)", oldSalary));
+                final String salaryInString = readString(format("new salary (different from the current salary, %s)", oldSalary));
                 final BigDecimal newSalary = validateAndFormatSalary(salaryInString);
 
                 updateSalary(employee, department, newSalary, oldSalary);
@@ -329,7 +326,7 @@ public final class EmployeeService {
         Objects.requireNonNull(newName, "New departmentName can´t be null!");
 
         if (newName.equals(employee.getName())) {
-            throw new EmployeeException(String.format("Name %s can´t be equals to current departmentName!", newName));
+            throw new EmployeeException(format("Name %s can´t be equals to current departmentName!", newName));
         }
 
         repository.updateName(employee, newName);
@@ -341,7 +338,7 @@ public final class EmployeeService {
         Objects.requireNonNull(newDocument, "New document can´t be null!");
 
         if (newDocument.equals(employee.getDocument())) {
-            throw new EmployeeException(String.format("Document %s can´t be equals to current document!", newDocument));
+            throw new EmployeeException(format("Document %s can´t be equals to current document!", newDocument));
         }
 
         repository.updateDocument(employee, newDocument);
@@ -387,12 +384,12 @@ public final class EmployeeService {
         };
     }
 
-   //Todo continue
+    //Todo continue
     public int deleteById(final long id) {
         try {
             return repository.deleteById(id);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error: %s", e.getMessage()), e);
         }
     }
 
@@ -400,7 +397,7 @@ public final class EmployeeService {
         try {
             return repository.deleteByName(name);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error: %s", e.getMessage()), e);
         }
     }
 
@@ -408,7 +405,7 @@ public final class EmployeeService {
         try {
             return repository.deleteByDocument(document);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error: %s", e.getMessage()), e);
         }
     }
 
@@ -416,7 +413,7 @@ public final class EmployeeService {
         try {
             return repository.deleteByHireDate(hireDateWithoutTime);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error: %s", e.getMessage()), e);
         }
     }
 
@@ -424,7 +421,7 @@ public final class EmployeeService {
         try {
             return repository.deleteByDepartment(department);
         } catch (DbConnectionException e) {
-            throw new EmployeeException(String.format("Error: %s", e.getMessage()), e);
+            throw new EmployeeException(format("Error: %s", e.getMessage()), e);
         }
     }
 

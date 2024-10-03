@@ -4,9 +4,9 @@ import enums.employee.EmployeeDelete;
 import enums.employee.EmployeeFind;
 import enums.employee.EmployeeType;
 import enums.employee.EmployeeUpdate;
-import model.department.Department;
-import model.department.Level;
-import model.employee.Employee;
+import model.Department;
+import model.Level;
+import model.Employee;
 import services.EmployeeService;
 
 import java.math.BigDecimal;
@@ -28,16 +28,21 @@ public final class EmployeeController {
 
     public void create(final Set<Department> departments) {
 
-        String name = readString("first departmentName (without special characters and more than three letters!)");
-        name = service.validateAndFormatName(name);
+        final String name = service.validateAndFormatName(
+                readString("first name (without special characters and more than three letters!)")
+        );
 
-        final String document = readString("CPF (patern xxx.xxx.xxx-xx)");
-        service.validateDocument(document);
+        final String document = service.validateAndFormatDocument(
+                readString("CPF (patern xxx.xxx.xxx-xx with symbols)")
+        );
 
-        final String dateInString = readString("birth date (pattern dd/MM/yyyy)");
-        final LocalDate birthDate = service.parseAndValidateDate(dateInString);
+        final LocalDate birthDate = service.parseAndValidateDate(
+                readString("birth date (pattern dd/MM/yyyy)")
+        );
+
         final int age = service.generateAge(birthDate);
 
+        //Todo
         final Map<Department, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departments);
 
         final EmployeeType type = readElement("Employee type",

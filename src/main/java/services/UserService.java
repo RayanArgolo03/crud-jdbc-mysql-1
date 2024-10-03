@@ -5,12 +5,9 @@ import dtos.request.UserRequest;
 import dtos.response.UserResponse;
 import exceptions.UserException;
 import mappers.UserMapper;
-import model.user.User;
-import org.bson.types.ObjectId;
+import model.User;
 import repositories.interfaces.UserRepository;
 import utils.FormatterUtils;
-
-import java.util.Objects;
 
 import static java.lang.String.format;
 

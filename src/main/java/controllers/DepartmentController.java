@@ -5,11 +5,10 @@ import dtos.response.DepartmentResponse;
 import enums.department.DepartmentFind;
 import enums.department.DepartmentUpdate;
 import lombok.extern.log4j.Log4j2;
-import model.department.Department;
+import model.Department;
 import services.DepartmentService;
 import utils.ReaderUtils;
 
-import java.util.List;
 import java.util.Set;
 
 @Log4j2

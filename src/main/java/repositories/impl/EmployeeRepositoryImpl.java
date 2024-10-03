@@ -1,18 +1,14 @@
 package repositories.impl;
 
-import model.department.Department;
-import repositories.interfaces.EmployeeRepository;
 import database.HibernateConnection;
-import model.department.Level;
-import model.employee.Employee;
-import model.employee.NormalEmployee;
-import model.employee.SuperiorEmployee;
-import dtos.employee.EmployeeBaseDTO;
-import dtos.employee.NormalEmployeeDTO;
-import dtos.response.EmployeeResponse;
-import exceptions.DbConnectionException;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import model.Department;
+import model.Level;
+import model.Employee;
+import model.NormalEmployee;
+import model.SuperiorEmployee;
+import repositories.interfaces.EmployeeRepository;
 
 import java.math.BigDecimal;
 import java.sql.Date;

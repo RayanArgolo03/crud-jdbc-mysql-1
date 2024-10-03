@@ -1,10 +1,14 @@
-package model.user;
+package model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
+@Getter
+@Setter
 public final class User {
 
     @BsonId
@@ -19,21 +23,5 @@ public final class User {
     public User(@BsonProperty("user_name") String username, @BsonProperty("password") String password) {
         this.username = username;
         this.password = password;
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public ObjectId getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
     }
 }

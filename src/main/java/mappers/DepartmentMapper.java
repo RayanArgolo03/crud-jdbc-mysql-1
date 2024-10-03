@@ -2,7 +2,7 @@ package mappers;
 
 import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
-import model.department.Department;
+import model.Department;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import utils.FormatterUtils;

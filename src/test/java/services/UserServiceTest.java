@@ -1,6 +1,6 @@
 package services;
 
-import model.user.User;
+import model.User;
 import dtos.response.UserResponse;
 import exceptions.UserException;
 import mappers.interfaces.Mapper;

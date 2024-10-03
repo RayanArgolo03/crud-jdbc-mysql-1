@@ -1,7 +1,7 @@
 package dtos.response;
 
-import model.department.Department;
-import model.department.Level;
+import model.Department;
+import model.Level;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
