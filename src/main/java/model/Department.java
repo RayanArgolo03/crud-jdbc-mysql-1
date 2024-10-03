@@ -42,7 +42,7 @@ public class Department {
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
-    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "departmentsAndLevelsAndSalaries")
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "job.department")
     private Set<Employee> employees;
 
     public Department(String name) {

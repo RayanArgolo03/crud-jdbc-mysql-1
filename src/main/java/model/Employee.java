@@ -9,10 +9,8 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Set;
 
 @Getter
@@ -43,7 +41,12 @@ public abstract class Employee {
     private final Integer age;
 
     //Todo mapear conjunto incorporado - Mapear employees a departamentos
-    private Set<JobInfo> jobsInfo;
+    @ElementCollection
+    @CollectionTable(
+            name = "jobs",
+            joinColumns = @JoinColumn(name = "employee_id")
+    )
+    private final Set<Job> jobs;
 
     @CreationTimestamp
     private final LocalDateTime hireDate;
@@ -57,7 +60,7 @@ public abstract class Employee {
         this.document = builder.document;
         this.birthDate = builder.birthDate;
         this.age = builder.age;
-        this.departmentsAndLevelsAndSalaries = builder.departmentsAndLevelsAndSalaries;
+        this.jobs = builder.jobsInfo;
 
         this.hireDate = null;
         this.lastUpdateDate = null;
@@ -70,7 +73,7 @@ public abstract class Employee {
         protected String document;
         protected LocalDate birthDate;
         protected Integer age;
-        protected Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries;
+        protected Set<Job> jobsInfo;
 
         T builder() {
             return (T) this;
@@ -97,8 +100,8 @@ public abstract class Employee {
             return builder();
         }
 
-        public T departmentsAndLevelsAndSalaries(Map<Department, Map<Level, BigDecimal>> departmentsAndLevelsAndSalaries) {
-            this.departmentsAndLevelsAndSalaries = departmentsAndLevelsAndSalaries;
+        public T departmentsAndLevelsAndSalaries(Set<Job> jobsInfo) {
+            this.jobsInfo = jobsInfo;
             return builder();
         }
 
