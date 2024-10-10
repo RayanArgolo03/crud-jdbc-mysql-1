@@ -6,11 +6,12 @@ import model.Department;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public interface DepartmentRepository extends EntityRepository<Department> {
-    Set<Department> findAll();
+    List<Department> findAll();
 
     Set<Department> findbyFilters(DepartmentFilter filters);
 

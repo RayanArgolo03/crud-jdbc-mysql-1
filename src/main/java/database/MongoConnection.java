@@ -1,7 +1,6 @@
 package database;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClientSettings;
+import com.mongodb.*;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
@@ -27,6 +26,7 @@ public final class MongoConnection {
     private MongoDatabase initDatabaseWithCodec() {
 
         MongoClientSettings serverSettings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString("mongodb://root:root@localhost:27017"))
                 .applyToClusterSettings(builder -> builder.serverSelectionTimeout(1000, TimeUnit.MILLISECONDS))
                 .build();
 
@@ -35,6 +35,7 @@ public final class MongoConnection {
                 .withCodecRegistry(
                         fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
                                 fromProviders(PojoCodecProvider.builder()
+                                        .register("model")
                                         .build()))
                 );
     }

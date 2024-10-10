@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.time.temporal.TemporalAccessor;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -42,10 +43,14 @@ public final class DepartmentService {
         this.mapper = mapper;
     }
 
-    public Set<Department> findAll() {
+    public DepartmentMapper getMapper() {
+        return mapper;
+    }
 
-        final Set<Department> list = repository.findAll();
-        if (list.isEmpty()) throw new DepartmentException("Departments not found!");
+    public List<Department> findAll() {
+
+        final List<Department> list = repository.findAll();
+        if (list.isEmpty()) throw new DepartmentException("No departments in the database!");
 
         return list;
     }
@@ -213,9 +218,7 @@ public final class DepartmentService {
             return null;
         }
 
-        return department.orElseThrow(
-                () -> new DepartmentException("Department not found!")
-        );
+        return department.orElseThrow(() -> new DepartmentException("Department not found!"));
     }
 
     public Department findAndDelete(final String name) {

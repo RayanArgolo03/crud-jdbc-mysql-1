@@ -31,13 +31,13 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Set<Department> findAll() {
+    public List<Department> findAll() {
 
         log.info("Tryning to find departments.. \n");
 
-        return new HashSet<>(connection.getManager()
+        return connection.getManager()
                 .createNamedQuery("Department.findAll", Department.class)
-                .getResultList());
+                .getResultList();
     }
 
     @Override
@@ -47,28 +47,29 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         final CriteriaQuery<Department> query = builder.createQuery(Department.class);
         final Root<Department> root = query.from(Department.class);
 
+        final Join<Department, Employee> employees = root.join("jobs", JoinType.LEFT)
+                .join("employee", JoinType.LEFT);
+
         final List<Predicate> predicates = new ArrayList<>();
 
         if (filters.getDepartmentName() != null) {
-            predicates.add(
-                    builder.equal(builder.upper(root.get("name")), filters.getDepartmentName())
+
+            predicates.add(builder.equal(
+                    builder.upper(root.get("name")),
+                    filters.getDepartmentName())
             );
         }
 
-        //Join to get Employee´s table attributes, instance if null
-        Join<Department, Employee> employees = null;
-
         if (filters.getEmployeeName() != null) {
 
-            employees = root.join("employees", JoinType.LEFT);
-            predicates.add(
-                    builder.equal(builder.upper(employees.get("name")), filters.getEmployeeName())
+            predicates.add(builder.equal(
+                    builder.upper(employees.get("name")),
+                    filters.getEmployeeName())
             );
         }
 
         if (filters.getEmployeeAge() != null) {
 
-            if (employees == null) employees = root.join("employees", JoinType.LEFT);
             predicates.add(builder.equal(
                     employees.get("age"),
                     filters.getEmployeeAge())
@@ -79,8 +80,6 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         BiFunction<Class<? extends Temporal>, Expression<String>, Expression<? extends Temporal>> function = convertByFunction(builder, "date");
 
         if (filters.getEmployeeHireDate() != null) {
-
-            if (employees == null) employees = root.join("employees", JoinType.LEFT);
 
             predicates.add(builder.equal(
                     function.apply(LocalDate.class, employees.get("hireDate")),
@@ -99,7 +98,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         if (filters.getLastUpdateDate() != null) {
 
             predicates.add(builder.equal(
-                    function.apply(LocalDateTime.class, root.get("lastUpdateDate")),
+                    function.apply(LocalDateTime.class, root.get("lastUpdate")),
                     filters.getLastUpdateDate()
             ));
         }
@@ -109,13 +108,13 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
             function = convertByFunction(builder, "time");
 
             predicates.add(builder.equal(
-                    function.apply(LocalTime.class, root.get("lastUpdateDate")),
+                    function.apply(LocalTime.class, root.get("lastUpdate")),
                     filters.getLastUpdateTime()
             ));
         }
 
         query.select(root)
-                .where(predicates);
+                .where(predicates.toArray(Predicate[]::new));
 
         return new HashSet<>(connection.getManager()
                 .createQuery(query)
@@ -133,6 +132,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
+                        LEFT JOIN FETCH d.jobs
                         WHERE UPPER(d.name) = :departmentName
                         """, Department.class)
                 .setParameter("departmentName", departmentName)
@@ -148,7 +148,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        WHERE DATE(createdDate) = :creationDate
+                        LEFT JOIN FETCH d.jobs
+                        WHERE DATE(d.createdDate) = :creationDate
                         """, Department.class)
                 .setParameter("creationDate", creationDate)
                 .getResultStream()
@@ -163,7 +164,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        WHERE lastUpdateDate = :updateDate
+                        LEFT JOIN FETCH d.jobs
+                        WHERE d.lastUpdateDate = :updateDate
                         """, Department.class)
                 .setParameter("updateDate", updateDate)
                 .getResultStream()
@@ -178,7 +180,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        WHERE TIME(lastUpdateDate) = :updateTime
+                        LEFT JOIN FETCH d.jobs
+                        WHERE TIME(d.lastUpdateDate) = :updateTime
                         """, Department.class)
                 .setParameter("updateTime", updateTime)
                 .getResultStream()
@@ -193,7 +196,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        LEFT JOIN d.employees e
+                        LEFT JOIN FETCH d.jobs j
+                        LEFT JOIN FETCH j.employee e
                         WHERE UPPER(e.name) = :employeeName
                         """, Department.class)
                 .setParameter("employeeName", employeeName)
@@ -209,7 +213,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        LEFT JOIN d.employees e
+                        LEFT JOIN FETCH d.jobs j
+                        LEFT JOIN FETCH j.employee e
                         WHERE e.age = :employeeAge
                         """, Department.class)
                 .setParameter("employeeAge", employeeAge)
@@ -225,7 +230,8 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .createQuery("""
                         SELECT d
                         FROM Department d
-                        LEFT JOIN d.employees e
+                        LEFT JOIN FETCH d.jobs j
+                        LEFT JOIN FETCH j.employee e
                         WHERE DATE(e.hireDate) = :employeHireDate
                         """, Department.class)
                 .setParameter("employeHireDate", employeHireDate)
@@ -246,7 +252,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         final Optional<Department> department = connection.getManager()
                 .createQuery("""
                         SELECT d FROM Department d
-                        LEFT JOIN FETCH d.employees e
+                        LEFT JOIN FETCH d.jobs j
                         WHERE d.name = :name
                         """, Department.class)
                 .setParameter("name", name)

@@ -1,14 +1,22 @@
 package dtos.response;
 
-public record DepartmentResponse(String departmentName, String createdDate, String lastUpdateDate) {
+import model.Employee;
+
+import java.util.Set;
+
+public record DepartmentResponse(String name, String createdDate, String lastUpdate, Set<Employee> employees) {
 
     public DepartmentResponse {
-        departmentName = "Department" + departmentName;
+        name = "Department" + name;
     }
 
     @Override
     public String toString() {
-        return String.format("%s - Created at %s - Last updated in %s", departmentName, createdDate, lastUpdateDate);
+        return String.format("%s - Created at %s - Last updated in %s - Employees: %s",
+                name,
+                createdDate,
+                lastUpdate,
+                (!employees.isEmpty()) ? employees : "No has");
     }
 }
 

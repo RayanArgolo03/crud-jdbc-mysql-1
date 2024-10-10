@@ -1,12 +1,28 @@
 package model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
+
+@Getter
+@Entity
+@Table(name = "normal_employes")
 public class NormalEmployee extends Employee {
 
-    private final boolean hasFaculty;
+    @Column(name = "has_faculty", nullable = false)
+    private boolean hasFaculty;
+
+    public NormalEmployee() {
+    }
 
     public NormalEmployee(Builder builder) {
         super(builder);
         this.hasFaculty = builder.hasFaculty;
+    }
+
+    public void hasFaculty() {
+        this.hasFaculty = true;
     }
 
     public static class Builder<T extends Builder<T>> extends Employee.Builder<T> {
@@ -14,13 +30,13 @@ public class NormalEmployee extends Employee {
         protected boolean hasFaculty;
 
         @Override
-        T builder() {
-            return super.builder();
+        T self() {
+            return super.self();
         }
 
         public T hasFaculty(boolean hasFaculty) {
             this.hasFaculty = hasFaculty;
-            return builder();
+            return self();
         }
 
         @Override

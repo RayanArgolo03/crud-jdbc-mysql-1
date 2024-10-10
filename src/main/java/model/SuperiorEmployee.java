@@ -1,16 +1,30 @@
 package model;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Map;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.Getter;
 
-public final class SuperiorEmployee extends Employee {
+@Getter
 
-    private final int workExperience;
+@Entity
+@Table(name = "superior_employees")
+public  class SuperiorEmployee extends Employee {
+
+    //If not set in defineSpecific method, using one year
+    @Column(name = "work_experience", nullable = false)
+    private int workExperience = 1;
+
+    public SuperiorEmployee() {
+    }
 
     public SuperiorEmployee(Builder builder) {
         super(builder);
         this.workExperience = builder.workExperience;
+    }
+
+    public void setWorkExperience(int workExperience) {
+        this.workExperience = workExperience;
     }
 
     public static class Builder<T extends SuperiorEmployee.Builder<T>> extends Employee.Builder<T> {
@@ -18,13 +32,13 @@ public final class SuperiorEmployee extends Employee {
         private int workExperience;
 
         @Override
-        T builder() {
-            return super.builder();
+        T self() {
+            return super.self();
         }
 
         public T workExperience(int workExperience) {
             this.workExperience = workExperience;
-            return builder();
+            return self();
         }
 
         @Override

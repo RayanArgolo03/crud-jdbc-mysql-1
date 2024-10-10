@@ -17,6 +17,7 @@ public final class User {
     @BsonProperty("user_name")
     private final String username;
 
+    @BsonProperty("password")
     private final String password;
 
     @BsonCreator

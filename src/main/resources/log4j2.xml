@@ -6,6 +6,12 @@
         </Console>
     </Appenders>
     <Loggers>
+        <Logger name="org.hibernate" level="OFF" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Logger name="org.mongodb.driver" level="OFF" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
         <Root level="info">
             <AppenderRef ref="LogToConsole"/>
         </Root>

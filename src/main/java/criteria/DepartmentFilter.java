@@ -74,12 +74,8 @@ public final class DepartmentFilter {
     }
 
     public boolean hasFilters() {
-        return Stream.of(departmentName,
-                        employeeName,
-                        creationDate,
-                        lastUpdateDate,
-                        employeeHireDate,
-                        lastUpdateTime,
+        return Stream.of(departmentName, employeeName, creationDate,
+                        lastUpdateDate, employeeHireDate, lastUpdateTime,
                         employeeAge)
                 .anyMatch(Objects::nonNull);
     }

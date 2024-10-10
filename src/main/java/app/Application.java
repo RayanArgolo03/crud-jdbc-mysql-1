@@ -8,9 +8,9 @@ import database.HibernateConnection;
 import database.MongoConnection;
 import dtos.response.UserResponse;
 import enums.department.DepartmentMenu;
-import enums.user.UserOption;
 import enums.employee.EmployeeMenu;
 import enums.menu.MainMenu;
+import enums.user.UserOption;
 import lombok.extern.log4j.Log4j2;
 import mappers.DepartmentMapper;
 import mappers.EmployeeMapper;
@@ -27,13 +27,9 @@ import services.UserService;
 import utils.ReaderUtils;
 
 import java.util.InputMismatchException;
-import java.util.List;
 
 @Log4j2
 public final class Application {
-
-    private Application() {
-    }
 
     private final static MongoConnection MONGO = MongoConnection.getINSTANCE();
     private final static HibernateConnection HIBERNATE = HibernateConnection.getINSTANCE("mysql");
@@ -42,13 +38,19 @@ public final class Application {
             new DepartmentService(new DepartmentRepositoryImpl(HIBERNATE), Mappers.getMapper(DepartmentMapper.class))
     );
     private final static EmployeeController EC = new EmployeeController(
-            new EmployeeService(new EmployeeRepositoryImpl(), Mappers.getMapper(EmployeeMapper.class))
+            new EmployeeService(new EmployeeRepositoryImpl(HIBERNATE), Mappers.getMapper(EmployeeMapper.class))
     );
     private final static UserController UC = new UserController(
             new UserService(new UserRepositoryImpl(MONGO), Mappers.getMapper(UserMapper.class))
     );
 
+    private Application() {
+    }
+
+
+    //TODO Verificar todos os TODOS nas anotações e escrever testes
     public static void main(String[] args) {
+        System.out.println("This system has been refactored of JDBC to Hibernate/MongoDb");
         mainMenu();
         System.out.println("Thanks for use! :)");
     }
@@ -113,24 +115,30 @@ public final class Application {
                 option = ReaderUtils.readEnum("employee option", EmployeeMenu.class);
 
                 switch (option) {
-                    case HIRE -> EC.create(DC.findAll());
+
+                    case HIRE -> System.out.printf("Employee Hired:\n%s", EC.create(DC.findAll()));
 
                     case UPDATE -> {
 
-                        final List<Employee> employeesFound = EC.find();
+                        final Employee employee = EC.find();
 
-                        final Employee employee = EC.chooseEmployeeToUpdate(employeesFound);
-                        System.out.printf("\n Employee before update:\n %s", employee);
+                        System.out.printf("Employee before update:\n %s", EC.getService().getMapper().employeeToResponse(employee));
+                        System.out.printf("Employee after update:\n %s", EC.update(employee));
+                    }
 
-                        EC.update(employee);
-                        System.out.printf("Employee after update:\n %s", employee);
-                    }
-                    case SHOW -> {
-                        EC.find().forEach(employee -> System.out.printf("%s \n", employee));
-                    }
+                    case SHOW -> EC.findByFilters().forEach(e -> System.out.printf("%s\n", e));
+
                     case DELETE -> {
-                        System.out.println("Employees dismissed: " + EC.delete(DC.findAll()));
+
+                        //Verify if has departments, throw exception
+                        DC.findAll();
+
+                        final Employee employee = EC.find();
+                        System.out.printf("Employee found:\n%s", EC.getService().getMapper().employeeToResponse(employee));
+
+                        EC.delete(employee);
                     }
+
                 }
 
             } catch (InputMismatchException e) {
@@ -161,7 +169,7 @@ public final class Application {
                         Department department;
 
                         if ((department = DC.findByOption()) != null) {
-                            System.out.printf("Department found:\n%s", department);
+                            System.out.printf("\n ----- Department found:\n%s", DC.getService().getMapper().departmentToResponse(department));
                             System.out.printf("\n ----- Department after update:\n%s", DC.update(department));
                         }
                     }

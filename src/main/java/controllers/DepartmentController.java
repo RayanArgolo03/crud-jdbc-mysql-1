@@ -9,6 +9,7 @@ import model.Department;
 import services.DepartmentService;
 import utils.ReaderUtils;
 
+import java.util.List;
 import java.util.Set;
 
 @Log4j2
@@ -20,7 +21,11 @@ public final class DepartmentController {
         this.service = service;
     }
 
-    public Set<Department> findAll() {
+    public DepartmentService getService() {
+        return service;
+    }
+
+    public List<Department> findAll() {
         log.info("\n Finding departments..");
         return service.findAll();
     }

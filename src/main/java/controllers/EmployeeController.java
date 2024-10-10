@@ -1,21 +1,19 @@
 package controllers;
 
-import enums.employee.EmployeeDelete;
-import enums.employee.EmployeeFind;
+import dtos.response.EmployeeResponse;
 import enums.employee.EmployeeType;
-import enums.employee.EmployeeUpdate;
+import factory.EmployeeBuilderFactory;
 import model.Department;
-import model.Level;
 import model.Employee;
+import model.Job;
 import services.EmployeeService;
+import utils.ReaderUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static utils.EnumListUtils.getEnumList;
+import static utils.ReaderUtils.readEnum;
 import static utils.ReaderUtils.readString;
 
 public final class EmployeeController {
@@ -26,7 +24,11 @@ public final class EmployeeController {
         this.service = service;
     }
 
-    public void create(final Set<Department> departments) {
+    public EmployeeService getService() {
+        return service;
+    }
+
+    public EmployeeResponse create(final List<Department> departments) {
 
         final String name = service.validateAndFormatName(
                 readString("first name (without special characters and more than three letters!)")
@@ -36,49 +38,50 @@ public final class EmployeeController {
                 readString("CPF (patern xxx.xxx.xxx-xx with symbols)")
         );
 
-        final LocalDate birthDate = service.parseAndValidateDate(
-                readString("birth date (pattern dd/MM/yyyy)")
+        final LocalDate birthDate = service.parseAndValidateTemporal(
+                readString("birth date (pattern dd/MM/yyyy)"),
+                "dd/MM/uuuu",
+                LocalDate::from
         );
 
         final int age = service.generateAge(birthDate);
 
-        //Todo
-        final Map<Department, Map<Level, BigDecimal>> dls = service.receiveJobsInformation(departments);
+        final EmployeeType type = readEnum("employee type", EmployeeType.class);
 
-        final EmployeeType type = readElement("Employee type",
-                getEnumList(EmployeeType.class));
-        final Employee employee = service.createEmployee(name, document, birthDate, age, dls, type);
+        final Employee employee = EmployeeBuilderFactory.newEmployeeBuilder(type)
+                .name(name)
+                .document(document)
+                .birthDate(birthDate)
+                .age(age)
+                .build();
+
+        final Set<Job> jobs = service.createJobs(departments, employee);
+        employee.setJobs(jobs);
+
         service.defineSpecificAtributtes(employee);
 
-        //Not commit here, and throw exception if there are problems
-        service.saveBaseEmployee(employee);
+        return service.saveBaseEmployee(employee);
 
-        //This method closes the connection opened above and commit the changes!
-        service.saveSpecificEmployee(employee);
+        //Todo se não salvar filhos use este método
+//        service.saveSpecificEmployee(employee);
+
     }
 
-    public List<Employee> find() {
-        final EmployeeFind option = readElement("find option",
-                getEnumList(EmployeeFind.class));
-        return service.findByOption(option);
+    public Set<EmployeeResponse> findByFilters() {
+        return service.findByFilters();
     }
 
-    public Employee chooseEmployeeToUpdate(final List<Employee> employeesFound) {
-        return employeesFound.size() == 1
-                ? employeesFound.get(0)
-                : readElement("Many employees returned!",
-                employeesFound);
+    public Employee find() {
+        return service.findByName(
+                ReaderUtils.readString("first name")
+        );
     }
 
-    public void update(final Employee employee) {
-        final EmployeeUpdate option = readElement("Option to update",
-                getEnumList(EmployeeUpdate.class));
-        service.updateByOption(option, employee);
+    public EmployeeResponse update(final Employee employee) {
+        return service.updateByOption(employee);
     }
 
-    public int delete(final Set<Department> departments) {
-        final EmployeeDelete option = readElement("Option to delete",
-                getEnumList(EmployeeDelete.class));
-        return service.deleteByOption(option, departments);
+    public void delete(final Employee employee) {
+        service.delete(employee);
     }
 }

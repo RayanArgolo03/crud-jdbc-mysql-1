@@ -22,11 +22,11 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>2.23.1</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
@@ -75,8 +75,9 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>7.0.0.Beta1</version>
+            <version>6.6.0.Final</version>
         </dependency>
+
 
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
         <dependency>

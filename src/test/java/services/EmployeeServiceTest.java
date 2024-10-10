@@ -46,10 +46,10 @@ class EmployeeServiceTest {
     private EmployeeService service;
 
     @Nested
-    @DisplayName("** Validate departmentName methods **")
+    @DisplayName("** Validate name methods **")
     class ValidateNameTests {
         @Test
-        @DisplayName("Should be throw Null Pointer Exception when the departmentName is null")
+        @DisplayName("Should be throw Null Pointer Exception when the name is null")
         void givenValidateAndFormatName_whenNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -61,7 +61,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw Employee Exception when the departmentName length is less than 3")
+        @DisplayName("Should be throw Employee Exception when the name length is less than 3")
         void givenValidateAndFormatName_whenNameLengthIsLessThan3_thenThrowEmployeeException() {
 
             final String name = "ab";
@@ -69,7 +69,7 @@ class EmployeeServiceTest {
             final EmployeeException e = assertThrows(EmployeeException.class,
                     () -> service.validateAndFormatName(name));
 
-            final String expectedMessage = String.format("%s is a small departmentName!", name);
+            final String expectedMessage = String.format("%s is a small name!", name);
             assertEquals(expectedMessage, e.getMessage());
 
         }
@@ -78,7 +78,7 @@ class EmployeeServiceTest {
         @ValueSource(strings = {
                 "12345", "John@Doe", "Jane_Doe", "!@#$%", "JohnDoe123", "     ", "J0hn", "Jane-Doe-", "John--Doe", "John..Doe", ".-John", "Doe-.", "Jane'.Doe", "'John", "Doe'", ".Jane", "Doe.", "John-Doe'", "-John", "Doe-", "Jane..Doe", "John.Doe'", "'Jane", "Doe'", ".John", "Doe.", "Jo--hn", "Doe--", "12345", "John@Doe", "Jane_Doe", "!@#$%", "JohnDoe123", "     ", "J0hn", "Jane-Doe-", "John--Doe", "John..Doe", ".-John", "Doe-.", "Jane'.Doe", "'John", "Doe'", ".Jane", "Doe.", "John-Doe'", "-John", "Doe-", "Jane..Doe", "John.Doe'", "'Jane", "Doe'", ".John", "Doe.", "Jo--hn", "Doe--"
         })
-        @DisplayName("Should be throw Employee Exception when the departmentName contains special symbo")
+        @DisplayName("Should be throw Employee Exception when the name contains special symbo")
         void givenValidateAndFormatName_whenNameContainsSpecialSymbol_thenThrowEmployeeException(final String name) {
 
             assertNotNull(name);
@@ -101,7 +101,7 @@ class EmployeeServiceTest {
     }
 
     @Nested
-    @DisplayName("** Validate departmentName methods **")
+    @DisplayName("** Validate name methods **")
     class ValidateDocumentTests {
         @Test
         @DisplayName("Should be throw Null Pointer Exception when document is null")
@@ -377,7 +377,7 @@ class EmployeeServiceTest {
             final int workExperience = -1;
 
             final EmployeeException e = assertThrows(EmployeeException.class,
-                    () -> service.defineWorkExperience(se, age, workExperience));
+                    () -> service.validateAndDefineWorkExperience(se, age, workExperience));
 
             final String expectedMessage = "Should be has work experience!";
             assertEquals(expectedMessage, e.getMessage());
@@ -391,7 +391,7 @@ class EmployeeServiceTest {
             final int workExperience = 20;
 
             final EmployeeException e = assertThrows(EmployeeException.class,
-                    () -> service.defineWorkExperience(se, age, workExperience));
+                    () -> service.validateAndDefineWorkExperience(se, age, workExperience));
 
             final String expectedMessage = "Did the employee work before they were born?";
             assertEquals(expectedMessage, e.getMessage());
@@ -405,7 +405,7 @@ class EmployeeServiceTest {
             final int workExperience = 5;
 
             final EmployeeException e = assertThrows(EmployeeException.class,
-                    () -> service.defineWorkExperience(se, age, workExperience));
+                    () -> service.validateAndDefineWorkExperience(se, age, workExperience));
 
             final String expectedMessage = "Superior Employee can´t be started work under the age of fifteen! (15 years old)";
             assertEquals(expectedMessage, e.getMessage());
@@ -420,7 +420,7 @@ class EmployeeServiceTest {
 
             assertEquals(0, se.getWorkExperience());
 
-            service.defineWorkExperience(se, age, workExperience);
+            service.validateAndDefineWorkExperience(se, age, workExperience);
             assertEquals(workExperience, se.getWorkExperience());
         }
 
@@ -581,7 +581,7 @@ class EmployeeServiceTest {
 
     }
 
-    @DisplayName("** Find by departmentName **")
+    @DisplayName("** Find by name **")
     @Nested
     class FindByNameTests {
 
@@ -593,7 +593,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the departmentName is null")
+        @DisplayName("Should be throw NullPointerException when the name is null")
         void givenFindByName_whenNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -604,7 +604,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when employees not found by departmentName passed")
+        @DisplayName("Should be throw EmployeeException when employees not found by name passed")
         void givenFindByName_whenEmployeesNotFoundByName_thenThrowEmployeeException() {
 
             when(repository.findByName(name)).thenReturn(List.of());
@@ -612,12 +612,12 @@ class EmployeeServiceTest {
             final EmployeeException e = assertThrows(EmployeeException.class,
                     () -> service.findByName(name));
 
-            final String expectedMessage = String.format("Employees not found by departmentName %s!", name);
+            final String expectedMessage = String.format("Employees not found by name %s!", name);
             assertEquals(expectedMessage, e.getMessage());
         }
 
         @Test
-        @DisplayName("Should be return a list with mapped employees when the departmentName passed found different employees")
+        @DisplayName("Should be return a list with mapped employees when the name passed found different employees")
         void givenFindByName_whenFoundTwoEmployeesWithDifferentType_thenReturnMappedEmployeeList() {
 
             final int expectedSize = 2;
@@ -867,7 +867,7 @@ class EmployeeServiceTest {
     }
 
     @Nested
-    @DisplayName("** Update departmentName **")
+    @DisplayName("** Update name **")
     class UpdateNameAndDocumentTests {
 
         private Employee employee;
@@ -880,31 +880,31 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the new departmentName is null")
+        @DisplayName("Should be throw NullPointerException when the new name is null")
         void givenUpdateName_whenNewNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
                     () -> service.updateName(employee, null));
 
-            final String expectedMessage = "New departmentName can´t be null!";
+            final String expectedMessage = "New name can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when the new departmentName is equals to the current departmentName")
+        @DisplayName("Should be throw EmployeeException when the new name is equals to the current name")
         void givenUpdateName_whenNewNameIsEqualsToCurrentName_thenThrowEmployeeException() {
 
             final EmployeeException e = assertThrows(EmployeeException.class,
                     () -> service.updateName(employee, employee.getName()));
 
-            final String expectedMessage = String.format("Name %s can´t be equals to current departmentName!", employee.getName());
+            final String expectedMessage = String.format("Name %s can´t be equals to current name!", employee.getName());
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be set new departmentName in Employee when the new departmentName is valid")
+        @DisplayName("Should be set new name in Employee when the new name is valid")
         void givenUpdateName_whenNewNameIsValid_thenSetNewNameInEmployee() {
 
             final String expectedNewName = "LuisXIV";
@@ -1126,7 +1126,7 @@ class EmployeeServiceTest {
     }
 
     @Nested
-    @DisplayName("** Delete by departmentName methods **")
+    @DisplayName("** Delete by name methods **")
     class DeleteByNameTests {
 
         private String name;
@@ -1137,10 +1137,10 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when no have employees found by departmentName")
+        @DisplayName("Should be throw EmployeeException when no have employees found by name")
         void givenDeleteByName_whenNoHasEmployeesFoundByName_thenThrowEmployeeException() {
 
-            final String expectedCauseMessage = String.format("No employees found by departmentName %s, nobody sacked!", name);
+            final String expectedCauseMessage = String.format("No employees found by name %s, nobody sacked!", name);
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).deleteByName(name);
 
             final EmployeeException e = assertThrows(EmployeeException.class,
@@ -1156,7 +1156,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return 1 when employee has been deleted by departmentName")
+        @DisplayName("Should be return 1 when employee has been deleted by name")
         void givenDeleteByName_whenOneEmployeeHasBeenDeletedByName_thenReturnOne() {
             when(repository.deleteByName(name)).thenReturn(1);
             assertEquals(1, service.deleteByName(name));
@@ -1164,7 +1164,7 @@ class EmployeeServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return more than 1 when employees has been deleted by departmentName")
+        @DisplayName("Should be return more than 1 when employees has been deleted by name")
         void givenDeleteByName_whenEmployeeHasBeenDeleted_thenReturnMoreThanOne() {
 
             when(repository.deleteByName(name)).thenReturn(

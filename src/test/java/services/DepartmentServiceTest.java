@@ -42,10 +42,10 @@ class DepartmentServiceTest {
     private DepartmentService service;
 
     @Nested
-    @DisplayName("** Validate and format departmentName methods **")
+    @DisplayName("** Validate and format name methods **")
     class ValidateAndFormatNameTests {
         @Test
-        @DisplayName("Should be throw NullPointerException when the departmentName is null")
+        @DisplayName("Should be throw NullPointerException when the name is null")
         void givenValidateAndFormatName_whenTheNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -56,7 +56,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return formatted departmentName when the departmentName is not null")
+        @DisplayName("Should be return formatted name when the name is not null")
         void givenValidateAndFormatName_whenTheNameIsNotNull_thenReturnFormattedName() {
             final String unformattedName = "AnYYnAme";
             final String expectedFormattedName = "Anyyname";
@@ -255,7 +255,7 @@ class DepartmentServiceTest {
 
     }
 
-    @DisplayName("** Find by departmentName **")
+    @DisplayName("** Find by name **")
     @Nested
     class FindByNameTests {
 
@@ -267,7 +267,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the departmentName is null")
+        @DisplayName("Should be throw NullPointerException when the name is null")
         void givenFindByName_whenNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
@@ -278,7 +278,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw DepartmentException when departments not found by departmentName passed")
+        @DisplayName("Should be throw DepartmentException when departments not found by name passed")
         void givenFindByName_whenDepartmentsNotFoundByName_thenThrowDepartmentException() {
 
             when(repository.findByDepartmentName(name)).thenReturn(List.of());
@@ -286,14 +286,14 @@ class DepartmentServiceTest {
             final DepartmentException e = assertThrows(DepartmentException.class,
                     () -> service.findByName(name));
 
-            final String expectedMessage = String.format("Departments not found by departmentName %s!", name);
+            final String expectedMessage = String.format("Departments not found by name %s!", name);
             assertEquals(expectedMessage, e.getMessage());
 
             verify(repository).findByDepartmentName(name);
         }
 
         @Test
-        @DisplayName("Should be return a list with mapped departments when the departmentName passed found departments")
+        @DisplayName("Should be return a list with mapped departments when the name passed found departments")
         void givenFindByName_whenFoundDepartments_thenReturnMappedDepartmentsList() {
 
             final DepartmentResponse dto1 = DepartmentResponse.builder().name(name + "a").build();
@@ -304,7 +304,7 @@ class DepartmentServiceTest {
             doAnswer(param -> {
                 DepartmentResponse dtoFound = param.getArgument(0);
                 return Department.builder()
-                        .name(dtoFound.departmentName())
+                        .name(dtoFound.name())
                         .build();
             }).when(mapper).dtoToEntity(any());
 
@@ -372,7 +372,7 @@ class DepartmentServiceTest {
     }
 
     @Nested
-    @DisplayName("** Update departmentName **")
+    @DisplayName("** Update name **")
     class UpdateName {
         private Department department;
 
@@ -382,31 +382,31 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw NullPointerException when the new departmentName is null")
+        @DisplayName("Should be throw NullPointerException when the new name is null")
         void givenUpdateName_whenNewNameIsNull_thenThrowNPEException() {
 
             final NullPointerException e = assertThrows(NullPointerException.class,
                     () -> service.updateName(department, null));
 
-            final String expectedMessage = "New departmentName can´t be null!";
+            final String expectedMessage = "New name can´t be null!";
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be throw EmployeeException when the new departmentName is equals to the current departmentName")
+        @DisplayName("Should be throw EmployeeException when the new name is equals to the current name")
         void givenUpdateName_whenNewNameIsEqualsToCurrentName_thenThrowEmployeeException() {
 
             final DepartmentException e = assertThrows(DepartmentException.class,
                     () -> service.updateName(department, department.getName()));
 
-            final String expectedMessage = "New departmentName is equals to current departmentName!";
+            final String expectedMessage = "New name is equals to current name!";
             assertEquals(expectedMessage, e.getMessage());
 
         }
 
         @Test
-        @DisplayName("Should be set new departmentName in Department when the new departmentName is valid")
+        @DisplayName("Should be set new name in Department when the new name is valid")
         void givenUpdateName_whenNewNameIsValid_thenSetNewNameInDepartment() {
 
             final String expectedNewName = "Hayek";
@@ -470,7 +470,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return the employees dismissed when department has been deleted by departmentName")
+        @DisplayName("Should be return the employees dismissed when department has been deleted by name")
         void givenDeleteById_whenDepartmentHasBeenDeleted_thenReturnDismissedEmployees() {
 
             final List<NormalEmployee> employeesDismissedMocked = List.of(NormalEmployee.builder().build(), NormalEmployee.builder().build());
@@ -483,7 +483,7 @@ class DepartmentServiceTest {
     }
 
     @Nested
-    @DisplayName("** Delete by departmentName methods **")
+    @DisplayName("** Delete by name methods **")
     class DeleteByNameTests {
 
         private String name;
@@ -494,10 +494,10 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be throw DepartmentException when no has departments found by departmentName")
+        @DisplayName("Should be throw DepartmentException when no has departments found by name")
         void givenDeleteByName_whenNoHasDepartmentsFoundByName_thenThrowDepartmentException() {
 
-            final String expectedCauseMessage = String.format("Departments not found by departmentName %s!", name);
+            final String expectedCauseMessage = String.format("Departments not found by name %s!", name);
             doThrow(new DbConnectionException(expectedCauseMessage)).when(repository).deleteByName(name);
 
             final DepartmentException e = assertThrows(DepartmentException.class,
@@ -513,7 +513,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return 1 when employee has been deleted by departmentName")
+        @DisplayName("Should be return 1 when employee has been deleted by name")
         void givenDeleteByName_whenOneDepartmentHasBeenDeletedByName_thenReturnOne() {
             when(repository.deleteByName(name)).thenReturn(1);
             assertEquals(1, service.deleteByName(name));
@@ -521,7 +521,7 @@ class DepartmentServiceTest {
         }
 
         @Test
-        @DisplayName("Should be return more than 1 when more than one departments has been deleted by departmentName")
+        @DisplayName("Should be return more than 1 when more than one departments has been deleted by name")
         void givenDeleteByName_whenMoreThanOneDepartmentsHasBeenDeletedByName_thenReturnMoreThanOne() {
 
             when(repository.deleteByName(name)).thenReturn(

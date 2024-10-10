@@ -3,6 +3,7 @@ package services;
 import com.mongodb.MongoException;
 import dtos.request.UserRequest;
 import dtos.response.UserResponse;
+import exceptions.DatabaseException;
 import exceptions.UserException;
 import mappers.UserMapper;
 import model.User;
@@ -21,7 +22,7 @@ public final class UserService {
         this.mapper = mapper;
     }
 
-    public String validateAndFormatUsername(final String username) {
+    public void validateAndFormatUsername(final String username) {
 
         if (username.length() < 3) {
             throw new UserException(format("Username %s has less than 3 characters!", username));
@@ -31,7 +32,6 @@ public final class UserService {
             throw new UserException(format("Username %s not contains at least 1 special character!", username));
         }
 
-        return FormatterUtils.formatName(username);
     }
 
     public void validatePassword(final String password) {
@@ -55,9 +55,15 @@ public final class UserService {
 
     public UserResponse findUser(final String username, final String password) {
 
-        return repository.findUser(username, password)
-                .map(mapper::userToResponse)
-                .orElseThrow(() -> new UserException(format("User of username %s not found!", username)));
+        try {
+            return repository.findUser(username, password)
+                    .map(mapper::userToResponse)
+                    .orElseThrow(() -> new UserException(format("User of username %s not found!", username)));
+
+        } catch (MongoException e) {
+            throw new DatabaseException(format("Error in find user: %s", e.getMessage()));
+        }
+
     }
 
     public UserResponse saveUser(final UserRequest request) {
@@ -76,9 +82,15 @@ public final class UserService {
 
     public UserResponse findAndDelete(final String username, final String password) {
 
-        return repository.findAndDelete(username, password)
-                .map(mapper::userToResponse)
-                .orElseThrow(() -> new UserException("User not found, not deleted!"));
+        try {
+
+            return repository.findAndDelete(username, password)
+                    .map(mapper::userToResponse)
+                    .orElseThrow(() -> new UserException("User not found, not deleted!"));
+
+        } catch (MongoException e) {
+            throw new DatabaseException(format("Error in find user: %s", e.getMessage()));
+        }
 
     }
 }

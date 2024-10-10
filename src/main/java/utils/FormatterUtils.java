@@ -17,10 +17,6 @@ public final class FormatterUtils {
         return name.substring(0, 1).toUpperCase().concat(name.substring(1).toLowerCase());
     }
 
-    public static String formatMoney(final String moneyInString) {
-        return moneyInString.replace(",", ".");
-    }
-
     public static String formatDate(final Temporal temporal) {
 
         final String pattern = (temporal instanceof LocalDateTime)
