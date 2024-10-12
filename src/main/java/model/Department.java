@@ -54,22 +54,10 @@ public class Department {
         this.lastUpdateDate = null;
     }
 
-    public Set<Employee> getEmployees(){
+    public Set<Employee> getEmployees() {
         return jobs.stream()
                 .map(Job::getEmployee)
                 .collect(Collectors.toSet());
     }
 
-    //Todo corrigir to string department
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        sb.append(id).append(" - ").append(name).append(" - ").append(" Created at ").append(createdDate.format(dtf))
-                .append(" - ")
-                .append("Last update date: ").append(Objects.isNull(lastUpdateDate) ? "No updates" : lastUpdateDate.format(dtf))
-                .append("\n");
-
-        return sb.toString();
-    }
 }

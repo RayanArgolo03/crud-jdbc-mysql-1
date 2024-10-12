@@ -13,9 +13,9 @@ import utils.FormatterUtils;
 public interface EmployeeMapper {
 
     //Mapping shared attributes
-    @Mapping(target = "birthDate", expression = "java(FormatterUtils.formatDate(employee.getBirthDate()))")
-    @Mapping(target = "createdDate", expression = "java(FormatterUtils.formatDate(employee.getHireDate()))")
-    @Mapping(target = "lastUpdate", expression = "java(FormatterUtils.formatDate(employee.getLastUpdateDate()))")
+    @Mapping(target = "birthDate", expression = "java(FormatterUtils.formatTemporalToString(employee.getBirthDate()))")
+    @Mapping(target = "createdDate", expression = "java(FormatterUtils.formatTemporalToString(employee.getHireDate()))")
+    @Mapping(target = "lastUpdate", expression = "java(FormatterUtils.formatTemporalToString(employee.getLastUpdateDate()))")
 
     //Mapping specific attributes
     @Mapping(target = "hasFaculty", expression = "java( (employee instanceof NormalEmployee ne) ? ne.isHasFaculty() : null )")

@@ -92,6 +92,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         if (filters.getHireDate() != null) {
 
+            //Todo teste com muitos argumentos
             final Expression<LocalDate> convertedHireDate = convertTemporal(builder, "date", LocalDate.class, root.get("hireDate"));
 
             predicates.add(builder.equal(
@@ -112,25 +113,24 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         }
 
-        //Specific attributes // Todo corrigir
+        //Specific inheritance attributes
         if (filters.getWorkExperience() != null) {
 
-            final Root<SuperiorEmployee> superiorEmployeeTable = query.from(SuperiorEmployee.class);
+            final Root<SuperiorEmployee> superiorEmployee = builder.treat(root, SuperiorEmployee.class);
 
             predicates.add(builder.greaterThanOrEqualTo(
-                    superiorEmployeeTable.get("workExperience"),
+                    superiorEmployee.get("workExperience"),
                     filters.getWorkExperience()
             ));
 
         }
 
-        //Specific attributes // Todo corrigir
         if (filters.hasFaculty()) {
 
-            final Root<NormalEmployee> superiorEmployeeTable = query.from(NormalEmployee.class);
+            final Root<NormalEmployee> normalEmployee = builder.treat(root, NormalEmployee.class);
 
             predicates.add(builder.greaterThanOrEqualTo(
-                    superiorEmployeeTable.get("hasFaculty"),
+                    normalEmployee.get("hasFaculty"),
                     filters.hasFaculty()
             ));
         }

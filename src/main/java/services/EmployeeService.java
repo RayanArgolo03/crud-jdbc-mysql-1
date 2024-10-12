@@ -17,6 +17,7 @@ import utils.FormatterUtils;
 import utils.ReaderUtils;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -100,7 +102,7 @@ public final class EmployeeService {
                         ReaderUtils.readString("employee salary (only numbers and decimal values separated by dot or comma")
                 );
 
-                System.out.printf("\n Salary: %s\n", NumberFormat.getCurrencyInstance().format(salary));
+                System.out.printf("\n Salary: %s\n", FormatterUtils.formatSalary(salary));
 
                 //Hire action
                 jobs.add(new Job(department, employee, level, salary));
@@ -266,8 +268,8 @@ public final class EmployeeService {
                     case HIRE_DATE -> {
 
                         final LocalDate hireDate = parseAndValidateTemporal(
-                                readString("hire date (pattern YYYY/MM/DD)"),
-                                "uuuu/MM/dd",
+                                readString("hire date (pattern DD/MM/YYYY)"),
+                                "dd/MM/uuuu",
                                 LocalDate::from
                         );
 
@@ -305,14 +307,10 @@ public final class EmployeeService {
         return filters;
     }
 
-    public <T extends TemporalAccessor> T parseAndValidateTemporal(final String value, final String pattern, final Function<TemporalAccessor, T> function) {
+    public <T extends TemporalAccessor> T parseAndValidateTemporal(final String value, final String pattern, final TemporalQuery<T> query) {
 
         try {
-            return function.apply(
-                    DateTimeFormatter.ofPattern(pattern)
-                            .withResolverStyle(ResolverStyle.STRICT)
-                            .parse(value)
-            );
+            return FormatterUtils.formatStringToTemporal(value, pattern, query);
 
         } catch (DateTimeException e) {
             throw new EmployeeException(format("%s does not matches the pattern %s!", value, pattern), e);

@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,12 +58,15 @@ public final class DepartmentService {
 
     public DepartmentResponse save(final DepartmentRequest request) {
 
+        final Department department = mapper.requestToDepartment(request);
+
         try {
-            final Department department = mapper.requestToDepartment(request);
             repository.save(department);
 
             return mapper.departmentToResponse(department);
 
+        } catch (ConstraintViolationException e) {
+            throw new DepartmentException(format("Departmnent with name %s already exists!", department.getName()));
         } catch (Exception e) {
             throw new DepartmentException(format("Error occured on create department: %s", e.getMessage()), e.getCause());
         }
@@ -100,8 +104,8 @@ public final class DepartmentService {
                 case CREATION_DATE -> {
 
                     final LocalDate createdDate = validadeAndFormatDate(
-                            readString("creation date (pattern YYYY/MM/DDDD with bars symbols)"),
-                            "uuuu/MM/dd",
+                            readString("creation date (pattern DD/MM/YYYY with bars symbols)"),
+                            "dd/MM/uuuu",
                             LocalDate::from
                     );
                     if (createdDate != null && !createdDate.isEqual(filters.getCreationDate())) {
@@ -112,7 +116,7 @@ public final class DepartmentService {
                 case UPDATE_DATE -> {
 
                     final LocalDateTime updateDate = validadeAndFormatDate(
-                            readString("creation date (pattern YYYY/MM/DD HH:MM with symbols)"),
+                            readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
                             "uuuu/MM/dd HH:mm",
                             LocalDateTime::from
                     );
@@ -176,14 +180,14 @@ public final class DepartmentService {
 
             case CREATION_DATE -> repository.findByCreationDate(
                     validadeAndFormatDate(
-                            readString("creation date (pattern YYYY/MM/DDDD with bars symbols)"),
+                            readString("creation date (pattern DD/MM/YYYY with bars symbols)"),
                             "uuuu/MM/dd",
                             LocalDate::from
                     )
             );
 
             case UPDATE_DATE -> repository.findByUpdateDate(validadeAndFormatDate(
-                            readString("creation date (pattern YYYY/MM/DD HH:MM with symbols)"),
+                            readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
                             "uuuu/MM/dd HH:mm",
                             LocalDateTime::from
                     )
@@ -258,14 +262,10 @@ public final class DepartmentService {
         return null;
     }
 
-    public <T extends TemporalAccessor> T validadeAndFormatDate(final String value, final String pattern, final Function<TemporalAccessor, T> function) {
+    public <T extends TemporalAccessor> T validadeAndFormatDate(final String value, final String pattern, final TemporalQuery<T> query) {
 
         try {
-            return function.apply(
-                    DateTimeFormatter.ofPattern(pattern)
-                            .withResolverStyle(ResolverStyle.STRICT)
-                            .parse(value)
-            );
+            return FormatterUtils.formatStringToTemporal(value, pattern, query);
 
         } catch (DateTimeParseException e) {
             log.error("{} is invalid! Pattern required: {}", value, pattern);

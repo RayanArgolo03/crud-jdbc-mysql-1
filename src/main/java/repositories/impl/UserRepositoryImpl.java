@@ -24,7 +24,15 @@ public final class UserRepositoryImpl implements UserRepository {
     public UserRepositoryImpl(MongoConnection connection) {
 
         collection = connection.getDatabase().getCollection("users", User.class);
+        createUsernameConstraint();
+    }
 
+    public UserRepositoryImpl(MongoCollection<User> collection) {
+        this.collection = collection;
+        createUsernameConstraint();
+    }
+
+    private void createUsernameConstraint(){
         //Create username MongoDB unique constraint
         collection.createIndex(
                 new Document("user_name", 1),

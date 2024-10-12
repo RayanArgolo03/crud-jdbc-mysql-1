@@ -10,8 +10,8 @@ import utils.FormatterUtils;
 @Mapper(imports = {FormatterUtils.class})
 public interface DepartmentMapper {
 
-    @Mapping(target = "createdDate", expression = "java(FormatterUtils.formatDate(department.getCreatedDate()))")
-    @Mapping(target = "lastUpdate", expression = "java(FormatterUtils.formatDate(department.getLastUpdateDate()))")
+    @Mapping(target = "createdDate", expression = "java(FormatterUtils.formatTemporalToString(department.getCreatedDate()))")
+    @Mapping(target = "lastUpdate", expression = "java(FormatterUtils.formatTemporalToString(department.getLastUpdateDate()))")
     @Mapping(target = "employees", expression = "java(department.getEmployees())")
     DepartmentResponse departmentToResponse(Department department);
 

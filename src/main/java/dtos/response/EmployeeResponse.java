@@ -29,14 +29,7 @@ public record EmployeeResponse(
                 .append("With document ").append(document).append("\n");
 
         sb.append("Work informations: ").append("\n");
-        for (Job job : jobs) {
-            sb.append("Departament ").append(job.getDepartment());
-            Level l = job.getLevel();
-            sb.append("Seniority ").append(l.name());
-            BigDecimal salary = job.getSalary();
-            sb.append(" receiving ").append(NumberFormat.getCurrencyInstance().format(salary));
-            sb.append("\n");
-        }
+        jobs.forEach(System.out::println);
 
         sb.append("Created date: ").append(createdDate).append("\n");
         sb.append("Last update date: ").append(lastUpdate).append("\n");

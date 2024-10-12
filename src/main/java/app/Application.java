@@ -48,7 +48,6 @@ public final class Application {
     }
 
 
-    //TODO Verificar todos os TODOS nas anotações e escrever testes
     public static void main(String[] args) {
         System.out.println("This system has been refactored of JDBC to Hibernate/MongoDb");
         mainMenu();
@@ -95,6 +94,7 @@ public final class Application {
 
         log.info("{} logged into the system! \n", username);
 
+        //If throw Input exception, propagates to the last method
         switch (ReaderUtils.readEnum("menu option", MainMenu.class)) {
 
             case OUT -> log.info("Logout by {}.. \n", username);

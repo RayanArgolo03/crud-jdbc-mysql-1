@@ -6,8 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import utils.FormatterUtils;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 
 @NoArgsConstructor(force = true)
 @Getter
@@ -43,4 +45,12 @@ public class Job {
         this.salary = salary;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Departament ").append(getDepartment());
+        sb.append(" with seniority ").append(getLevel());
+        sb.append(" receiving ").append(FormatterUtils.formatSalary(salary));
+        return super.toString();
+    }
 }
