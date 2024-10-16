@@ -13,8 +13,7 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Projections.fields;
-import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Projections.*;
 
 @Log4j2
 public final class UserRepositoryImpl implements UserRepository {
@@ -22,7 +21,6 @@ public final class UserRepositoryImpl implements UserRepository {
     private final MongoCollection<User> collection;
 
     public UserRepositoryImpl(MongoConnection connection) {
-
         collection = connection.getDatabase().getCollection("users", User.class);
         createUsernameConstraint();
     }
@@ -53,7 +51,7 @@ public final class UserRepositoryImpl implements UserRepository {
         log.info("Tryning to find user with username {} in the database.. \n", username);
 
         return Optional.ofNullable(collection.find(eq("user_name", username))
-                .projection(fields(include("user_name")))
+                .projection(fields(include("user_name"), excludeId()))
                 .first());
     }
 

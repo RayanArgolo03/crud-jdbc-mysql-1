@@ -12,17 +12,11 @@ import java.util.function.Consumer;
 @Log4j2
 public final class HibernateConnection {
 
-    private static HibernateConnection INSTANCE;
     private final EntityManager manager;
 
-    private HibernateConnection(String persistenceUnit) {
+    public HibernateConnection(String persistenceUnit) {
         manager = Persistence.createEntityManagerFactory(persistenceUnit)
                 .createEntityManager();
-    }
-
-    public static HibernateConnection getINSTANCE(String persistenceUnit) {
-        if (INSTANCE == null) INSTANCE = new HibernateConnection(persistenceUnit);
-        return INSTANCE;
     }
 
     public EntityManager getManager() {
@@ -50,7 +44,7 @@ public final class HibernateConnection {
                 }
             }
 
-            throw new DatabaseException(e.getCause().getMessage(), e);
+            throw new DatabaseException(e.getMessage(), e);
 
         } finally {
             clearPersistenceContext();

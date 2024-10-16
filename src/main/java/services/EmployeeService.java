@@ -105,7 +105,13 @@ public final class EmployeeService {
                 System.out.printf("\n Salary: %s\n", FormatterUtils.formatSalary(salary));
 
                 //Hire action
-                jobs.add(new Job(department, employee, level, salary));
+                jobs.add(Job.builder()
+                        .department(department)
+                        .employee(employee)
+                        .level(level)
+                        .salary(salary)
+                        .build());
+
 
                 //Removing department of hiring
                 departments.remove(department);

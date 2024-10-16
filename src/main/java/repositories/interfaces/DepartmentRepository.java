@@ -3,6 +3,7 @@ package repositories.interfaces;
 import criteria.DepartmentFilter;
 import model.Department;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

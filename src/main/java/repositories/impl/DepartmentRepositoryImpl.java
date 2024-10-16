@@ -8,6 +8,7 @@ import model.Department;
 import model.Employee;
 import repositories.interfaces.DepartmentRepository;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -165,7 +166,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                         SELECT d
                         FROM Department d
                         LEFT JOIN FETCH d.jobs
-                        WHERE d.lastUpdateDate = :updateDate
+                        WHERE d.lastUpdateDate = CAST(:updateDate AS TIMESTAMP)
                         """, Department.class)
                 .setParameter("updateDate", updateDate)
                 .getResultStream()
@@ -252,7 +253,6 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
         final Optional<Department> department = connection.getManager()
                 .createQuery("""
                         SELECT d FROM Department d
-                        LEFT JOIN FETCH d.jobs j
                         WHERE d.name = :name
                         """, Department.class)
                 .setParameter("name", name)

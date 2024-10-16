@@ -1,10 +1,7 @@
 package model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -18,7 +15,6 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor(force = true)
 
 @Entity
@@ -41,7 +37,6 @@ public class Department {
     @Column(name = "created_date")
     private final LocalDateTime createdDate;
 
-    @UpdateTimestamp
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
 
@@ -54,10 +49,16 @@ public class Department {
         this.lastUpdateDate = null;
     }
 
+    @PreUpdate
+    public void onPreUpdate() {
+        this.setLastUpdateDate(LocalDateTime.now());
+    }
+
     public Set<Employee> getEmployees() {
         return jobs.stream()
                 .map(Job::getEmployee)
                 .collect(Collectors.toSet());
     }
+
 
 }

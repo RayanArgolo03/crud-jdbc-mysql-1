@@ -17,20 +17,17 @@ import utils.FormatterUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.ResolverStyle;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static utils.ReaderUtils.*;
+import static utils.ReaderUtils.readEnum;
 import static utils.ReaderUtils.readString;
 
 @Log4j2
@@ -186,11 +183,13 @@ public final class DepartmentService {
                     )
             );
 
-            case UPDATE_DATE -> repository.findByUpdateDate(validadeAndFormatDate(
+            case UPDATE_DATE -> repository.findByUpdateDate(
+                    validadeAndFormatDate(
                             readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
                             "uuuu/MM/dd HH:mm",
                             LocalDateTime::from
                     )
+
             );
 
             case UPDATE_TIME -> repository.findByUpdateTime(
@@ -268,10 +267,9 @@ public final class DepartmentService {
             return FormatterUtils.formatStringToTemporal(value, pattern, query);
 
         } catch (DateTimeParseException e) {
-            log.error("{} is invalid! Pattern required: {}", value, pattern);
+            throw new DepartmentException(format("%s is invalid! Pattern required: %s", value, pattern), e);
         }
 
-        return null;
     }
 
     //Possibility of adding new options

@@ -2,16 +2,15 @@ package model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import utils.FormatterUtils;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 
+@AllArgsConstructor
 @NoArgsConstructor(force = true)
+@Builder
 @Getter
 @Setter
 
@@ -22,7 +21,7 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "job_id")
-    private Long id;
+    private final Long id;
 
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
@@ -38,12 +37,6 @@ public class Job {
     @Column(columnDefinition = "DECIMAL(15,2) NOT NULL")
     private BigDecimal salary;
 
-    public Job(Department department, Employee employee, Level level, BigDecimal salary) {
-        this.department = department;
-        this.employee = employee;
-        this.level = level;
-        this.salary = salary;
-    }
 
     @Override
     public String toString() {

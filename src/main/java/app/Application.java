@@ -32,7 +32,7 @@ import java.util.InputMismatchException;
 public final class Application {
 
     private final static MongoConnection MONGO = MongoConnection.getINSTANCE();
-    private final static HibernateConnection HIBERNATE = HibernateConnection.getINSTANCE("mysql");
+    private final static HibernateConnection HIBERNATE = new HibernateConnection("mysql");
 
     private final static DepartmentController DC = new DepartmentController(
             new DepartmentService(new DepartmentRepositoryImpl(HIBERNATE), Mappers.getMapper(DepartmentMapper.class))

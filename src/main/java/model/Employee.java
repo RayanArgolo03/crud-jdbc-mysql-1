@@ -1,24 +1,20 @@
 package model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
+@Getter
+@Setter
 
 @Entity
 @DynamicInsert
@@ -53,9 +49,24 @@ public abstract class Employee {
     @Column(name = "hire_date")
     private final LocalDateTime hireDate;
 
-    @UpdateTimestamp
     @Column(name = "last_update_date")
     private LocalDateTime lastUpdateDate;
+
+    @PreUpdate
+    public void onUpdate() {this.setLastUpdateDate(LocalDateTime.now());}
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee employee)) return false;
+        return Objects.equals(id, employee.id) && Objects.equals(document, employee.document);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, document);
+    }
 
     protected Employee(Builder builder) {
 
@@ -103,4 +114,7 @@ public abstract class Employee {
 
         public abstract Employee build();
     }
+
+
+
 }
