@@ -17,18 +17,13 @@ import utils.FormatterUtils;
 import utils.ReaderUtils;
 
 import java.math.BigDecimal;
-import java.text.Normalizer;
-import java.text.NumberFormat;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -179,7 +174,7 @@ public final class EmployeeService {
         se.setWorkExperience(workExperience);
     }
 
-    public EmployeeResponse saveBaseEmployee(final Employee employee) {
+    public EmployeeResponse save(final Employee employee) {
 
         try {
             repository.save(employee);
@@ -230,7 +225,7 @@ public final class EmployeeService {
 
                         final String employeeName = readString("employee name");
                         if (filters.getEmployeeName() == null || !employeeName.equalsIgnoreCase(filters.getEmployeeName())) {
-                            filters.setEmployeeName(employeeName.toLowerCase());
+                            filters.setEmployeeName(employeeName.toUpperCase());
                         }
 
                     }
@@ -252,8 +247,9 @@ public final class EmployeeService {
                     }
                     case WORK_EXPERIENCE -> {
 
+                        //Todo test null pointer estoura sem comparação null inicial? Programação defensiva?
                         final int workExperience = readInt("work experience");
-                        if (filters.getWorkExperience() == null || workExperience != filters.getWorkExperience()) {
+                        if (workExperience != filters.getWorkExperience()) {
                             filters.setWorkExperience(workExperience);
                         }
 
@@ -266,7 +262,7 @@ public final class EmployeeService {
                                 LocalDate::from
                         );
 
-                        if (filters.getBirthDate() == null || !filters.getBirthDate().isEqual(birthDate)) {
+                        if (!filters.getBirthDate().isEqual(birthDate)) {
                             filters.setBirthDate(birthDate);
                         }
 
@@ -279,7 +275,7 @@ public final class EmployeeService {
                                 LocalDate::from
                         );
 
-                        if (filters.getHireDate() == null || !filters.getHireDate().isEqual(hireDate)) {
+                        if (!filters.getHireDate().isEqual(hireDate)) {
                             filters.setHireDate(hireDate);
                         }
 
@@ -292,7 +288,7 @@ public final class EmployeeService {
                                 LocalTime::from
                         );
 
-                        if (filters.getHireTime() == null || !filters.getHireTime().equals(hireTime)) {
+                        if (!filters.getHireTime().equals(hireTime)) {
                             filters.setHireTime(hireTime);
                         }
 
@@ -415,12 +411,10 @@ public final class EmployeeService {
 
     public void delete(final Employee employee) {
 
-        final YesOrNo yesOrNo = readEnum(format("Do you really want to dismiss %s?", employee.getName()), YesOrNo.class);
-
-        if (yesOrNo == YesOrNo.YES) {
+        if (readEnum(format("Do you really want to dismiss %s?", employee.getName()), YesOrNo.class) == YesOrNo.YES) {
 
             try {
-                repository.deleteByName(employee.getName());
+                repository.delete(employee);
             } catch (Exception e) {
                 throw new EmployeeException(format("Error occured in delete employee: %s", e.getMessage()), e);
             }

@@ -18,12 +18,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -86,83 +84,93 @@ public final class DepartmentService {
 
         final DepartmentFilter filters = new DepartmentFilter();
 
-        DepartmentFind option;
-        while ((option = readEnum("filter to find", DepartmentFind.class)) != DepartmentFind.OUT) {
+        DepartmentFind option = null;
+        do {
+            try {
 
-            switch (option) {
-                case DEPARTMENT_NAME -> {
+                switch ((option = readEnum("filter to find", DepartmentFind.class))) {
 
-                    final String departmentName = readString("department name");
-                    if (!departmentName.equalsIgnoreCase(filters.getDepartmentName())) {
-                        filters.setDepartmentName(departmentName.toUpperCase());
+                    case DEPARTMENT_NAME -> {
+
+                        final String departmentName = readString("department name");
+                        if (!departmentName.equalsIgnoreCase(filters.getDepartmentName())) {
+                            filters.setDepartmentName(departmentName.toUpperCase());
+                        }
+
                     }
+                    case CREATION_DATE -> {
 
-                }
-                case CREATION_DATE -> {
+                        final LocalDate createdDate = validadeAndFormatDate(
+                                readString("creation date (pattern DD/MM/YYYY with bars symbols)"),
+                                "dd/MM/uuuu",
+                                LocalDate::from
+                        );
+                        if (createdDate != null && !createdDate.isEqual(filters.getCreationDate())) {
+                            filters.setCreationDate(createdDate);
+                        }
 
-                    final LocalDate createdDate = validadeAndFormatDate(
-                            readString("creation date (pattern DD/MM/YYYY with bars symbols)"),
-                            "dd/MM/uuuu",
-                            LocalDate::from
-                    );
-                    if (createdDate != null && !createdDate.isEqual(filters.getCreationDate())) {
-                        filters.setCreationDate(createdDate);
                     }
+                    case UPDATE_DATE -> {
 
-                }
-                case UPDATE_DATE -> {
+                        final LocalDateTime updateDate = validadeAndFormatDate(
+                                readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
+                                "uuuu/MM/dd HH:mm",
+                                LocalDateTime::from
+                        );
+                        //Removing miliseconds to comparison in database
+                        if (updateDate != null && !updateDate.isEqual(filters.getLastUpdateDate())) {
+                            filters.setLastUpdateDate(updateDate.truncatedTo(ChronoUnit.MICROS));
+                        }
+                    }
+                    case UPDATE_TIME -> {
 
-                    final LocalDateTime updateDate = validadeAndFormatDate(
-                            readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
-                            "uuuu/MM/dd HH:mm",
-                            LocalDateTime::from
-                    );
-                    if (updateDate != null && !updateDate.isEqual(filters.getLastUpdateDate())) {
-                        filters.setLastUpdateDate(updateDate);
+                        final LocalTime updateTime = validadeAndFormatDate(
+                                readString("update time (pattern HH:MM with symbol)"),
+                                "HH:mm",
+                                LocalTime::from
+                        );
+                        if (updateTime != null && !updateTime.equals(filters.getLastUpdateTime())) {
+                            filters.setLastUpdateTime(updateTime);
+                        }
+                    }
+                    case EMPLOYEE_NAME -> {
+
+                        final String employeeName = readString("employee name");
+                        if (!employeeName.equalsIgnoreCase(filters.getEmployeeName())) {
+                            filters.setEmployeeName(employeeName.toUpperCase());
+                        }
+
+                    }
+                    case EMPLOYEE_AGE -> {
+
+                        final Integer employeeAge = validateAndFormatEmployeeAge(readString("employee age (over 17 years old)"));
+                        if (employeeAge != null && !employeeAge.equals(filters.getEmployeeAge())) {
+                            filters.setEmployeeAge(employeeAge);
+                        }
+
+                    }
+                    case EMPLOYEE_HIRE_DATE -> {
+
+                        final LocalDate employeeHireDate = validadeAndFormatDate(
+                                readString("update time (pattern DD/MM/YYYY with symbols)"),
+                                "dd/MM/uuuu",
+                                LocalDate::from
+                        );
+                        if (employeeHireDate != null && !employeeHireDate.equals(filters.getEmployeeHireDate())) {
+                            filters.setEmployeeHireDate(employeeHireDate);
+                        }
+
                     }
                 }
-                case UPDATE_TIME -> {
 
-                    final LocalTime updateTime = validadeAndFormatDate(
-                            readString("update time (pattern HH:MM with symbol)"),
-                            "HH:mm",
-                            LocalTime::from
-                    );
-                    if (updateTime != null && !updateTime.equals(filters.getLastUpdateTime())) {
-                        filters.setLastUpdateTime(updateTime);
-                    }
-                }
-                case EMPLOYEE_NAME -> {
+            } catch (InputMismatchException e) {
+                log.error("Invalid value!");
 
-                    final String employeeName = readString("employee name");
-                    if (!employeeName.equalsIgnoreCase(filters.getEmployeeName())) {
-                        filters.setEmployeeName(employeeName.toUpperCase());
-                    }
-
-                }
-                case EMPLOYEE_AGE -> {
-
-                    final Integer employeeAge = validateAndFormatEmployeeAge(readString("employee age (over 17 years old)"));
-                    if (employeeAge != null && !employeeAge.equals(filters.getEmployeeAge())) {
-                        filters.setEmployeeAge(employeeAge);
-                    }
-
-                }
-                case EMPLOYEE_HIRE_DATE -> {
-
-                    final LocalDate employeeHireDate = validadeAndFormatDate(
-                            readString("update time (pattern DD/MM/YYYY with symbols)"),
-                            "dd/MM/uuuu",
-                            LocalDate::from
-                    );
-                    if (employeeHireDate != null && !employeeHireDate.equals(filters.getEmployeeHireDate())) {
-                        filters.setEmployeeHireDate(employeeHireDate);
-                    }
-
-                }
+            } catch (Exception e) {
+                log.error(e.getMessage());
             }
 
-        }
+        } while (option != DepartmentFind.OUT);
 
         if (!filters.hasFilters()) return null;
 
@@ -183,12 +191,13 @@ public final class DepartmentService {
                     )
             );
 
+            //Removing miliseconds to comparison in database
             case UPDATE_DATE -> repository.findByUpdateDate(
                     validadeAndFormatDate(
                             readString("creation date (pattern DD/MM/YYYY HH:MM with symbols)"),
                             "uuuu/MM/dd HH:mm",
                             LocalDateTime::from
-                    )
+                    ).truncatedTo(ChronoUnit.MICROS)
 
             );
 

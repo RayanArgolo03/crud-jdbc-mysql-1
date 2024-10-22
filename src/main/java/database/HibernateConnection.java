@@ -44,7 +44,7 @@ public final class HibernateConnection {
                 }
             }
 
-            throw new DatabaseException(e.getMessage(), e);
+            throw new DatabaseException(e.getMessage(), e.getCause());
 
         } finally {
             clearPersistenceContext();

@@ -1,5 +1,6 @@
 package repositories;
 
+import criteria.DepartmentFilter;
 import database.HibernateConnection;
 import exceptions.DatabaseException;
 import model.*;
@@ -13,25 +14,18 @@ import repositories.interfaces.DepartmentRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DepartmentRepositoryTest {
 
-
-    private DepartmentRepository repository;
-    private Department department;
-
-    @BeforeEach
-    void setUp() {
-        repository = new DepartmentRepositoryImpl(new HibernateConnection("h2"));
-        department = new Department("DEP");
-    }
+    private DepartmentRepository repository = new DepartmentRepositoryImpl(new HibernateConnection("h2"));
+    ;
+    private Department department = new Department("DEP");
 
     @Nested
     @DisplayName("*** Save tests ***")
@@ -64,26 +58,6 @@ class DepartmentRepositoryTest {
 
     }
 
-
-    @Nested
-    @DisplayName("*** FindAll tests ***")
-    class FindAllTests {
-
-        @Test
-        @DisplayName("Should be returned list of size 1 when the departments have been found")
-        void givenFindAll_whenDepartmentsHasBeenFound_thenReturnListOfDepartments() {
-            repository.save(department);
-            assertEquals(1, repository.findAll().size());
-        }
-
-        @Test
-        @DisplayName("Should be returned list of size 1 when the departments have been found")
-        void givenFindAll_whenDepartmentsNotFound_thenReturnEmptyList() {
-            assertEquals(Collections.EMPTY_LIST, repository.findAll());
-        }
-
-    }
-
     @Nested
     @DisplayName("*** Find tests ***")
     class FindTests {
@@ -109,6 +83,19 @@ class DepartmentRepositoryTest {
                     .build();
 
             department.setJobs(Set.of(job));
+        }
+
+        @Test
+        @DisplayName("Should be returned list of size 1 when the departments have been found")
+        void givenFindAll_whenDepartmentsHasBeenFound_thenReturnListOfDepartments() {
+            repository.save(department);
+            assertEquals(1, repository.findAll().size());
+        }
+
+        @Test
+        @DisplayName("Should be returned list of size 1 when the departments have been found")
+        void givenFindAll_whenDepartmentsNotFound_thenReturnEmptyList() {
+            assertEquals(Collections.EMPTY_LIST, repository.findAll());
         }
 
         @Test
@@ -161,7 +148,7 @@ class DepartmentRepositoryTest {
             department = repository.findByDepartmentName(department.getName()).get();
             repository.updateName(department, "newName");
 
-            final Optional<Department> optional = repository.findByUpdateDate(department.getLastUpdateDate());
+            final Optional<Department> optional = repository.findByUpdateDate(department.getLastUpdateDate().truncatedTo(ChronoUnit.MICROS));
             assertTrue(optional.isPresent());
 
         }
@@ -300,6 +287,193 @@ class DepartmentRepositoryTest {
         }
 
 
+        @Nested
+        @DisplayName("*** FindByFilters tests ***")
+        class FindByFiltersTests {
+
+            private DepartmentFilter filters = new DepartmentFilter();
+
+            @Test
+            @DisplayName("Should be return Set of departmnent with jobs when department exists by department name")
+            void givenFindByFilters_whenDepartmentExistsByDepartmentName_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                filters.setDepartmentName(department.getName());
+
+                final List<Department> departments = new ArrayList<>(repository.findbyFilters(filters));
+
+                assertEquals(1, departments.size());
+                assertNotNull(departments.get(0).getJobs());
+                //Possible n+1 corrected by tuple query
+                assertNotNull(new ArrayList<>(departments.get(0).getJobs()).get(0).getEmployee());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty Set when department not exists by department name")
+            void givenFindByFilters_whenDepartmentNotExistsByDepartmentName_thenReturnEmptySet() {
+                filters.setDepartmentName(department.getName());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return Set of departmnent when department exists by employee name")
+            void givenFindByFilters_whenDepartmentExistsByEmployeeName_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                filters.setEmployeeName(employee.getName());
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty Set when department not exists by employee name")
+            void givenFindByFilters_whenDepartmentNotExistsByEmployeeName_thenReturnEmptySet() {
+                filters.setEmployeeName(employee.getName());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by employee age")
+            void givenFindByFilters_whenDepartmentExistsByEmployeeAge_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                filters.setEmployeeAge(employee.getAge());
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty set when departments not exists by employee age")
+            void givenFindByFilters_whenDeparmentNotExistsByEmployeeAge_thenReturnEmptySet() {
+                filters.setEmployeeAge(employee.getAge());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by employee hire date")
+            void givenFindByFilters_whenDepartmentExistsByEmployeeHireDate_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                filters.setEmployeeHireDate(employee.getHireDate().toLocalDate());
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty set when departments not exists by employee hire date")
+            void givenFindByFilters_whenDeparmentNotExistsByEmployeeHireDate_thenReturnEmptySet() {
+                filters.setEmployeeHireDate(LocalDate.now());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by department creation date")
+            void givenFindByFilters_whenDepartmentExistsByDepartmentCreationDate_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                filters.setCreationDate(department.getCreatedDate().toLocalDate());
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty set when departments not exists by department creation date")
+            void givenFindByFilters_whenDeparmentNotExistsByDepartmentCreationDate_thenReturnEmptySet() {
+                filters.setCreationDate(LocalDate.now());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by department update date")
+            void givenFindByFilters_whenDepartmentExistsByDepartmentUpdateDate_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                department = repository.findByDepartmentName(department.getName())
+                        .get();
+
+                repository.updateName(department, "DE");
+
+                filters.setLastUpdateDate(department.getLastUpdateDate());
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty set when departments not exists by department update date")
+            void givenFindByFilters_whenDeparmentNotExistsByDepartmentUpdateDate_thenReturnEmptySet() {
+                filters.setLastUpdateDate(department.getLastUpdateDate());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by department update time")
+            void givenFindByFilters_whenDepartmentExistsByDepartmentUpdateTime_thenReturnSetOfDepartment() {
+
+                repository.save(department);
+                department = repository.findByDepartmentName(department.getName())
+                        .get();
+                repository.updateName(department, "DE");
+
+                filters.setLastUpdateTime(LocalTime.of(
+                        department.getLastUpdateDate().getHour(),
+                        department.getLastUpdateDate().getMinute()
+                ));
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty set when departments not exists by department update time")
+            void givenFindByFilters_whenDeparmentNotExistsByDepartmentUpdateTime_thenReturnEmptySet() {
+                filters.setLastUpdateTime(LocalTime.now());
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+
+            @Test
+            @DisplayName("Should be return set of department when department exists by all filters")
+            void givenFindByFilters_whenDepartmentExistsByAllFilters_thenReturnSetOfDeparment() {
+
+                repository.save(department);
+                department = repository.findByDepartmentName(department.getName())
+                        .get();
+                repository.updateName(department, "DE");
+
+                filters.setDepartmentName(department.getName());
+                filters.setEmployeeName(employee.getName());
+                filters.setEmployeeAge(employee.getAge());
+                filters.setCreationDate(department.getCreatedDate().toLocalDate());
+                filters.setEmployeeHireDate(employee.getHireDate().toLocalDate());
+                filters.setLastUpdateDate(department.getLastUpdateDate().truncatedTo(ChronoUnit.MICROS));
+
+                LocalTime localTime = LocalTime.of(
+                        department.getLastUpdateDate().getHour(),
+                        department.getLastUpdateDate().getMinute()
+                );
+
+                filters.setLastUpdateTime(localTime);
+
+                assertEquals(1, repository.findbyFilters(filters).size());
+            }
+
+            @Test
+            @DisplayName("Should be return Empty department when department not exists by all filters")
+            void givenFindByFilters_whenDepartmentNotExistsByAllFilters_thenReturnEmptySet() {
+
+
+                filters.setDepartmentName(department.getName());
+                filters.setEmployeeName(employee.getName());
+                filters.setEmployeeAge(employee.getAge());
+                filters.setCreationDate(LocalDate.now());
+                filters.setEmployeeHireDate(LocalDate.now());
+                filters.setLastUpdateDate(LocalDateTime.now());
+                filters.setLastUpdateDate(LocalDateTime.now());
+                filters.setLastUpdateTime(LocalTime.of(10, 20));
+
+
+                assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
+            }
+        }
+
     }
 
     @Nested
@@ -321,6 +495,26 @@ class DepartmentRepositoryTest {
             assertEquals(newName, departmentFound.getName());
             assertNotEquals(oldName, departmentFound.getName());
             assertNotNull(departmentFound.getLastUpdateDate());
+
+        }
+
+        @Test
+        @DisplayName("Should be throw DatabaseException when department name already exists")
+        void givenUpdateName_whenDepartmentNameAlreadyExists_thenThrowDatabaseException() {
+
+            final String oldName = department.getName();
+            final String newName = "PET";
+
+            repository.save(department);
+            repository.save(new Department(newName));
+
+            final Department departmentFound = repository.findByDepartmentName(oldName).get();
+
+            final DatabaseException e = assertThrows(DatabaseException.class, () ->
+                    repository.updateName(departmentFound, newName));
+
+            assertInstanceOf(ConstraintViolationException.class, e.getCause());
+
 
         }
 

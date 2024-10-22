@@ -5,11 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 
 @Entity
+@DynamicUpdate
 @Table(name = "superior_employees")
 public  class SuperiorEmployee extends Employee {
 

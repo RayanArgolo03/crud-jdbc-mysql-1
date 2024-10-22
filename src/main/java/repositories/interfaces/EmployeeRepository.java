@@ -13,6 +13,6 @@ public interface EmployeeRepository extends EntityRepository<Employee> {
 
     void update(Employee employee);
 
-    void deleteByName(String name);
+    void delete(Employee employee);
 
 }

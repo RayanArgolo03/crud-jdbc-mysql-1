@@ -6,6 +6,7 @@ import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Objects;
 
@@ -13,6 +14,7 @@ import java.util.Objects;
 @EqualsAndHashCode(callSuper = true)
 
 @Entity
+@DynamicUpdate
 @Table(name = "normal_employes")
 public class NormalEmployee extends Employee {
 

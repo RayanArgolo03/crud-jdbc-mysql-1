@@ -60,10 +60,7 @@ public final class EmployeeController {
 
         service.defineSpecificAtributtes(employee);
 
-        return service.saveBaseEmployee(employee);
-
-        //Todo se não salvar filhos use este método
-//        service.saveSpecificEmployee(employee);
+        return service.save(employee);
 
     }
 

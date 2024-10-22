@@ -2,19 +2,22 @@ package repositories.impl;
 
 import criteria.DepartmentFilter;
 import database.HibernateConnection;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.*;
 import lombok.extern.log4j.Log4j2;
 import model.Department;
 import model.Employee;
+import model.Job;
+import org.hibernate.type.descriptor.converter.spi.JpaAttributeConverter;
 import repositories.interfaces.DepartmentRepository;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 @Log4j2
 public final class DepartmentRepositoryImpl implements DepartmentRepository {
@@ -45,11 +48,11 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
     public Set<Department> findbyFilters(final DepartmentFilter filters) {
 
         final CriteriaBuilder builder = connection.getManager().getCriteriaBuilder();
-        final CriteriaQuery<Department> query = builder.createQuery(Department.class);
+        final CriteriaQuery<Tuple> query = builder.createTupleQuery();
         final Root<Department> root = query.from(Department.class);
 
-        final Join<Department, Employee> employees = root.join("jobs", JoinType.LEFT)
-                .join("employee", JoinType.LEFT);
+        final Join<Job, Department> jobs = root.join("jobs", JoinType.LEFT);
+        final Join<Employee, Job> employees = jobs.join("employee", JoinType.LEFT);
 
         final List<Predicate> predicates = new ArrayList<>();
 
@@ -96,11 +99,12 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
             ));
         }
 
+
         if (filters.getLastUpdateDate() != null) {
 
             predicates.add(builder.equal(
-                    function.apply(LocalDateTime.class, root.get("lastUpdate")),
-                    filters.getLastUpdateDate()
+                    root.get("lastUpdateDate"),
+                    filters.getLastUpdateDate().truncatedTo(ChronoUnit.MICROS)
             ));
         }
 
@@ -109,19 +113,22 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
             function = convertByFunction(builder, "time");
 
             predicates.add(builder.equal(
-                    function.apply(LocalTime.class, root.get("lastUpdate")),
+                    function.apply(LocalTime.class, root.get("lastUpdateDate")),
                     filters.getLastUpdateTime()
             ));
         }
 
-        query.select(root)
+        query.multiselect(root, jobs)
                 .where(predicates.toArray(Predicate[]::new));
 
-        return new HashSet<>(connection.getManager()
+        return connection.getManager()
                 .createQuery(query)
-                .getResultList());
+                .getResultStream()
+                .map(tuple -> tuple.get(0, Department.class))
+                .collect(Collectors.toSet());
     }
 
+    //Todo alterar função para receber dois argumentos, varargs?
     private BiFunction<Class<? extends Temporal>, Expression<String>, Expression<? extends Temporal>> convertByFunction(final CriteriaBuilder builder, final String function) {
         return (classs, rootAttribute) -> builder.function(function, classs, rootAttribute);
     }
@@ -166,7 +173,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                         SELECT d
                         FROM Department d
                         LEFT JOIN FETCH d.jobs
-                        WHERE d.lastUpdateDate = CAST(:updateDate AS TIMESTAMP)
+                        WHERE d.lastUpdateDate = :updateDate
                         """, Department.class)
                 .setParameter("updateDate", updateDate)
                 .getResultStream()
@@ -243,7 +250,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
 
     @Override
     public void updateName(final Department department, final String newName) {
-        connection.execute((manager) -> department.setName(newName));
+        connection.execute(entityManager -> department.setName(newName));
     }
 
 

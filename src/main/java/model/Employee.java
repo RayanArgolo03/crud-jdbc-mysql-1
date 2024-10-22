@@ -11,13 +11,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
-@AllArgsConstructor
 @NoArgsConstructor(force = true)
 @Getter
 @Setter
 
 @Entity
-@DynamicInsert
 @DynamicUpdate
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "employees")

@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(force = true)
 
 @Entity
-@Table(name = "departments")
 @DynamicInsert
 @DynamicUpdate
+@Table(name = "departments")
 
 @NamedQuery(name = "Department.findAll", query = "SELECT d FROM Department d")
 public class Department {

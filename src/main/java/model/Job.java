@@ -3,19 +3,21 @@ package model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 import utils.FormatterUtils;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 
-@AllArgsConstructor
-@NoArgsConstructor(force = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 @Builder
 @Getter
 @Setter
 
 @Entity
 @Table(name = "jobs")
+@DynamicUpdate
 public class Job {
 
     @Id
@@ -28,7 +30,7 @@ public class Job {
     private final Department department;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "employee_id", nullable = false)
+    @JoinColumn(name = "employee_id")
     private final Employee employee;
 
     @Enumerated(value = EnumType.STRING)

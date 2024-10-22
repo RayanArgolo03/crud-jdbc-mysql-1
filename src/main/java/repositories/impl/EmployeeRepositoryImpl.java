@@ -8,13 +8,8 @@ import lombok.extern.log4j.Log4j2;
 import model.*;
 import repositories.interfaces.EmployeeRepository;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.*;
 
@@ -48,15 +43,16 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                     .join("department", JoinType.LEFT);
 
             predicates.add(builder.equal(
-                    builder.lower(departmentTable.get("name")),
-                    departmentTable)
+                            builder.upper(departmentTable.get("name")),
+                            filters.getDepartmentName()
+                    )
             );
         }
 
         if (filters.getEmployeeName() != null) {
 
             predicates.add(builder.equal(
-                    root.get("name"),
+                    builder.upper(root.get("name")),
                     filters.getEmployeeName()
             ));
 
@@ -75,7 +71,7 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
             predicates.add(builder.equal(
                     root.get("age"),
-                    filters.getDocument()
+                    filters.getEmployeeAge()
             ));
 
         }
@@ -84,31 +80,33 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         if (filters.getBirthDate() != null) {
 
             predicates.add(builder.equal(
-                    root.get("age"),
+                    root.get("birthDate"),
                     filters.getBirthDate()
             ));
 
         }
 
+        //Receives function necessary to compare root column with the temporal filter (date, time or datetime)
+        Expression<? extends Temporal> convertedTemporal;
+
         if (filters.getHireDate() != null) {
 
-            //Todo teste com muitos argumentos
-            final Expression<LocalDate> convertedHireDate = convertTemporal(builder, "date", LocalDate.class, root.get("hireDate"));
+            convertedTemporal = convertTemporal(builder, "date", LocalDate.class, root.get("hireDate"));
 
             predicates.add(builder.equal(
-                    convertedHireDate,
-                    filters.getBirthDate()
+                    convertedTemporal,
+                    filters.getHireDate()
             ));
 
         }
 
         if (filters.getHireTime() != null) {
 
-            final Expression<LocalTime> convertedHireDate = convertTemporal(builder, "time", LocalTime.class, root.get("hireDate"));
+            convertedTemporal = convertTemporal(builder, "time", LocalTime.class, root.get("hireDate"));
 
             predicates.add(builder.equal(
-                    convertedHireDate,
-                    filters.getBirthDate()
+                    convertedTemporal,
+                    filters.getHireTime()
             ));
 
         }
@@ -116,10 +114,8 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
         //Specific inheritance attributes
         if (filters.getWorkExperience() != null) {
 
-            final Root<SuperiorEmployee> superiorEmployee = builder.treat(root, SuperiorEmployee.class);
-
             predicates.add(builder.greaterThanOrEqualTo(
-                    superiorEmployee.get("workExperience"),
+                    builder.treat(root, SuperiorEmployee.class).get("workExperience"),
                     filters.getWorkExperience()
             ));
 
@@ -127,10 +123,8 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
 
         if (filters.hasFaculty()) {
 
-            final Root<NormalEmployee> normalEmployee = builder.treat(root, NormalEmployee.class);
-
-            predicates.add(builder.greaterThanOrEqualTo(
-                    normalEmployee.get("hasFaculty"),
+            predicates.add(builder.equal(
+                    builder.treat(root, NormalEmployee.class).get("hasFaculty"),
                     filters.hasFaculty()
             ));
         }
@@ -143,6 +137,13 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                 .getResultList());
     }
 
+    public <T extends Temporal> Expression<T> convertTemporal(final CriteriaBuilder builder,
+                                                              final String function,
+                                                              final Class<T> returnedTemporalClass,
+                                                              final Expression<?>... arguments) {
+        return builder.function(function, returnedTemporalClass, arguments);
+    }
+
     @Override
     public Optional<Employee> findByName(final String name) {
 
@@ -153,27 +154,13 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
                 .findFirst();
     }
 
-    @SafeVarargs
-    public final <T extends Temporal> Expression<T> convertTemporal(final CriteriaBuilder builder,
-                                                                    final String function,
-                                                                    final Class<T> temporalClass,
-                                                                    final Expression<T>... arguments) {
-        return builder.function(function, temporalClass, arguments);
-    }
-
     @Override
     public void update(final Employee employee) {
         connection.execute(EntityManager::flush);
     }
 
     @Override
-    public void deleteByName(final String name) {
-        connection.getManager()
-                .createQuery("""
-                        DELETE FROM Employee e
-                        WHERE name = :name
-                        """, Employee.class)
-                .setParameter("name", name)
-                .executeUpdate();
+    public void delete(final Employee employee) {
+        connection.execute(entityManager -> entityManager.remove(employee));
     }
 }
