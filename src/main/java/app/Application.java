@@ -49,7 +49,7 @@ public final class Application {
 
 
     public static void main(String[] args) {
-        System.out.println("This system has been refactored of JDBC to Hibernate/MongoDb");
+        System.out.println("This system has been refactored of JDBC to Hibernate/MongoDb - Always restart MongoDB and MySQL databases");
         mainMenu();
         System.out.println("Thanks for use! :)");
     }
@@ -67,14 +67,13 @@ public final class Application {
 
                     case LOGIN -> {
                         user = UC.find();
-                        loginMenu(user.username());
+                        loginMenu(user);
                     }
 
-                    case CREATE_USER -> loginMenu(UC.create().username());
+                    case CREATE_USER -> loginMenu(UC.create());
 
-                    case DELETE_USER -> {
-                        System.out.printf("User %s has been deleted!\n", UC.delete());
-                    }
+                    case DELETE_USER -> System.out.printf("User %s has been deleted!\n", UC.delete());
+
                 }
 
             } catch (InputMismatchException e) {
@@ -90,14 +89,14 @@ public final class Application {
     }
 
 
-    private static void loginMenu(final String username) {
+    private static void loginMenu(final UserResponse response) {
 
-        log.info("{} logged into the system! \n", username);
+        log.info("{} logged into the system! \n", response);
 
         //If throw Input exception, propagates to the last method
         switch (ReaderUtils.readEnum("menu option", MainMenu.class)) {
 
-            case OUT -> log.info("Logout by {}.. \n", username);
+            case OUT -> log.info("Logout by {}.. \n", response);
 
             case EMPLOYEES -> employeesMenu();
 
@@ -176,12 +175,8 @@ public final class Application {
 
                     case SHOW -> DC.findByFilters().forEach(d -> System.out.printf("%s\n", d));
 
-                    case DELETE -> {
+                    case DELETE -> System.out.printf("Department closed:\n%s", DC.findAndDelete());
 
-                        final Department department = DC.findAndDelete();
-                        System.out.printf("Department %s closed! %d employees dismissed! \n", department.getName(), department.getEmployees().size());
-
-                    }
 
                 }
 
@@ -190,7 +185,7 @@ public final class Application {
                 System.exit(0);
 
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Error: {}", e.getMessage());
             }
 
         } while (option != DepartmentMenu.OUT);

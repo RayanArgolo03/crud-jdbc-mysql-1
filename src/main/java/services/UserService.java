@@ -5,22 +5,23 @@ import dtos.request.UserRequest;
 import dtos.response.UserResponse;
 import exceptions.DatabaseException;
 import exceptions.UserException;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import mappers.UserMapper;
 import model.User;
 import repositories.interfaces.UserRepository;
-import utils.FormatterUtils;
+
+import java.util.PrimitiveIterator;
 
 import static java.lang.String.format;
 
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public final class UserService {
 
-    private final UserRepository repository;
-    private final UserMapper mapper;
-
-    public UserService(UserRepository repository, UserMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
+    UserRepository repository;
+    UserMapper mapper;
 
     public void validateAndFormatUsername(final String username) {
 
@@ -28,8 +29,8 @@ public final class UserService {
             throw new UserException(format("Username %s has less than 3 characters!", username));
         }
 
-        if (!containsAtLeastOneSpecialCharacter(username)) {
-            throw new UserException(format("Username %s not contains at least 1 special character!", username));
+        if (containsAtLeastOneSpecialCharacter(username)) {
+            throw new UserException(format("Username %s contains special character!", username));
         }
 
     }
@@ -86,7 +87,7 @@ public final class UserService {
 
             return repository.findAndDelete(username, password)
                     .map(mapper::userToResponse)
-                    .orElseThrow(() -> new UserException("User not found, not deleted!"));
+                    .orElseThrow(() -> new UserException(format("User %s not found, not deleted!", username)));
 
         } catch (MongoException e) {
             throw new DatabaseException(format("Error in find user: %s", e.getMessage()));

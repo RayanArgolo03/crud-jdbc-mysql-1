@@ -43,7 +43,9 @@ public final class DepartmentController {
     }
 
     public Set<DepartmentResponse> findByFilters() {
-        return service.findByFilters();
+        return service.findByFilters(
+                service.createFilters()
+        );
     }
 
     public Department findByOption() {
@@ -58,7 +60,7 @@ public final class DepartmentController {
         );
     }
 
-    public Department findAndDelete() {
+    public DepartmentResponse findAndDelete() {
         return service.findAndDelete(
                 ReaderUtils.readString("department name")
         );

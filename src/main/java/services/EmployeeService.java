@@ -309,10 +309,12 @@ public final class EmployeeService {
         return filters;
     }
 
+    //Todo
     public <T extends TemporalAccessor> T parseAndValidateTemporal(final String value, final String pattern, final TemporalQuery<T> query) {
 
         try {
-            return FormatterUtils.formatStringToTemporal(value, pattern, query);
+            return null;
+//            return FormatterUtils.formatStringToTemporal(value, pattern, query);
 
         } catch (DateTimeException e) {
             throw new EmployeeException(format("%s does not matches the pattern %s!", value, pattern), e);

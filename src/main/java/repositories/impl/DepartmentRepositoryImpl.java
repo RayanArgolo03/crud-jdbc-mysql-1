@@ -128,7 +128,6 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                 .collect(Collectors.toSet());
     }
 
-    //Todo alterar função para receber dois argumentos, varargs?
     private BiFunction<Class<? extends Temporal>, Expression<String>, Expression<? extends Temporal>> convertByFunction(final CriteriaBuilder builder, final String function) {
         return (classs, rootAttribute) -> builder.function(function, classs, rootAttribute);
     }

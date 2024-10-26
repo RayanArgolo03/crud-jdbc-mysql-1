@@ -1,5 +1,7 @@
 package utils;
 
+import org.jgrapht.alg.drawing.FRLayoutAlgorithm2D;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -26,6 +28,8 @@ public final class FormatterUtils {
 
     public static String formatTemporalToString(final Temporal temporal) {
 
+        if (temporal == null) return null;
+
         final String pattern = (temporal instanceof LocalDateTime)
                 ? "dd/MM/uuuu HH:mm"
                 : (temporal instanceof LocalDate)
@@ -37,7 +41,13 @@ public final class FormatterUtils {
                 .format(temporal);
     }
 
-    public static <T extends TemporalAccessor> T formatStringToTemporal(final String value, final String pattern, final TemporalQuery<T> query) {
+    public static <T extends Temporal> T formatStringToTemporal(final String value, final Class<T> temporalClass, final TemporalQuery<T> query) {
+
+        final String pattern = (temporalClass == LocalDateTime.class)
+                ? "dd/MM/uuuu HH:mm"
+                : (temporalClass == LocalDate.class)
+                ? "dd/MM/uuuu"
+                : "HH:mm"; //LocalTime pattern
 
         return DateTimeFormatter.ofPattern(pattern)
                 .withResolverStyle(ResolverStyle.STRICT)

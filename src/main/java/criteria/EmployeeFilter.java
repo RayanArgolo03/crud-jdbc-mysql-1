@@ -36,7 +36,7 @@ public final class EmployeeFilter {
         return Stream.of(departmentName, employeeName, document,
                         employeeAge, workExperience, birthDate,
                         hireDate, hireTime, hasFaculty)
-                .anyMatch(Objects::nonNull);
+                .allMatch(Objects::nonNull);
     }
 }
 

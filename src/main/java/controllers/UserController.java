@@ -15,7 +15,7 @@ public final class UserController {
 
     public UserResponse create() {
 
-        final String username = ReaderUtils.readString("username (with more than 3 characters and contains at least 1 special character)");
+        final String username = ReaderUtils.readString("username (with more than 3 characters and without special characters)");
         service.validateAndFormatUsername(username);
 
         //Not allow continue if user already exists in the database

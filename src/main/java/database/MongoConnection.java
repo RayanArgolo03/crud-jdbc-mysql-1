@@ -4,6 +4,7 @@ import com.mongodb.*;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
@@ -13,6 +14,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 @Log4j2
+@Getter
 public final class MongoConnection {
 
     private static MongoConnection INSTANCE;
@@ -29,6 +31,11 @@ public final class MongoConnection {
                 .applyConnectionString(new ConnectionString("mongodb://root:root@localhost:27017"))
                 .applyToClusterSettings(builder -> builder.serverSelectionTimeout(1000, TimeUnit.MILLISECONDS))
                 .build();
+
+        //Drop if exists
+        MongoClients.create(serverSettings)
+                .getDatabase("app")
+                .drop();
 
         return MongoClients.create(serverSettings)
                 .getDatabase("app")
@@ -56,7 +63,4 @@ public final class MongoConnection {
         return INSTANCE;
     }
 
-    public MongoDatabase getDatabase() {
-        return database;
-    }
 }

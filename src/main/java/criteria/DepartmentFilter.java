@@ -77,7 +77,7 @@ public final class DepartmentFilter {
         return Stream.of(departmentName, employeeName, creationDate,
                         lastUpdateDate, employeeHireDate, lastUpdateTime,
                         employeeAge)
-                .anyMatch(Objects::nonNull);
+                .allMatch(Objects::nonNull);
     }
 }
 
