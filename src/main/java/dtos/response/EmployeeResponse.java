@@ -1,5 +1,6 @@
 package dtos.response;
 
+import lombok.Builder;
 import model.Job;
 import model.Level;
 
@@ -7,6 +8,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Set;
 
+@Builder
 public record EmployeeResponse(
         Long id,
         String name,
@@ -17,8 +19,7 @@ public record EmployeeResponse(
         String createdDate,
         String lastUpdate,
         Integer workExperience,
-        Boolean hasFaculty
-) {
+        Boolean hasFaculty) {
 
     @Override
     public String toString() {

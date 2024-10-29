@@ -7,6 +7,7 @@ import com.mongodb.client.model.IndexOptions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import utils.ReaderUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,8 +23,15 @@ public final class MongoConnection {
 
     private MongoConnection() {
         database = initDatabaseWithCodec();
-        testConnection(database);
+        testConnection();
+        dropLastDatabase();
     }
+
+    public static MongoConnection getINSTANCE() {
+        if (INSTANCE == null) INSTANCE = new MongoConnection();
+        return INSTANCE;
+    }
+
 
     private MongoDatabase initDatabaseWithCodec() {
 
@@ -31,11 +39,6 @@ public final class MongoConnection {
                 .applyConnectionString(new ConnectionString("mongodb://root:root@localhost:27017"))
                 .applyToClusterSettings(builder -> builder.serverSelectionTimeout(1000, TimeUnit.MILLISECONDS))
                 .build();
-
-        //Drop if exists
-        MongoClients.create(serverSettings)
-                .getDatabase("app")
-                .drop();
 
         return MongoClients.create(serverSettings)
                 .getDatabase("app")
@@ -47,10 +50,13 @@ public final class MongoConnection {
                 );
     }
 
-    private void testConnection(final MongoDatabase database) {
+    private void testConnection() {
 
         try {
+            //Test connection
             database.runCommand(new BasicDBObject("ping", "1000"));
+            log.info("MongoConnection initiated!");
+
         } catch (Exception e) {
             log.fatal("MongoConnection not initiated! Run Docker-Compose Container or verify your connection!");
             System.exit(0);
@@ -58,9 +64,10 @@ public final class MongoConnection {
 
     }
 
-    public static MongoConnection getINSTANCE() {
-        if (INSTANCE == null) INSTANCE = new MongoConnection();
-        return INSTANCE;
+    private void dropLastDatabase(){
+        log.info("Dropping the last database.. if you want to keep the last database, delete the method in MongoConnection");
+        database.drop();
     }
+
 
 }

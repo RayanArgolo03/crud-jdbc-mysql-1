@@ -1,6 +1,5 @@
 package mappers;
 
-import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
 import model.Department;
 import org.mapstruct.Mapper;
@@ -15,8 +14,6 @@ public interface DepartmentMapper {
     @Mapping(target = "employees", expression = "java(department.getEmployees())")
     DepartmentResponse departmentToResponse(Department department);
 
-    @Mapping(target = "name", source = "name")
-    Department requestToDepartment(DepartmentRequest request);
 
 
 }

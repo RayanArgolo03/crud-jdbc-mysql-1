@@ -1,7 +1,6 @@
 package services;
 
 import criteria.DepartmentFilter;
-import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
 import enums.department.DepartmentFind;
 import enums.department.DepartmentUpdate;
@@ -22,7 +21,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.*;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalQuery;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,11 +33,12 @@ import static utils.ReaderUtils.readString;
 
 @Log4j2
 @AllArgsConstructor
-@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public final class DepartmentService {
 
     DepartmentRepository repository;
+
+    @Getter
     DepartmentMapper mapper;
 
     public List<Department> findAll() {
@@ -47,9 +49,7 @@ public final class DepartmentService {
         return list;
     }
 
-    public DepartmentResponse save(final DepartmentRequest request) {
-
-        final Department department = mapper.requestToDepartment(request);
+    public DepartmentResponse save(final Department department) {
 
         try {
             repository.save(department);
@@ -237,13 +237,35 @@ public final class DepartmentService {
 
     public DepartmentResponse findAndDelete(final String name) {
 
+        Optional<Department> department;
         try {
-            return repository.findAndDelete(name)
-                    .map(mapper::departmentToResponse)
-                    .orElseThrow(() -> new DepartmentException(format("Department %s not found!", name)));
+            department = repository.findAndDelete(name);
 
         } catch (Exception e) {
             throw new DatabaseException(format("Error ocurred in find and delete: %s", e.getMessage()), e.getCause());
+        }
+
+        return department
+                .map(mapper::departmentToResponse)
+                .orElseThrow(() -> new DepartmentException(format("Department %s not found!", name)));
+    }
+
+    //Possibility of adding new options
+    public DepartmentResponse updateByOption(final DepartmentUpdate option, final Department department) {
+
+        final String newName = validateAndFormatName(
+                readString("department name (without special characters and more than 2 characters)")
+        );
+
+        try {
+            repository.updateName(department, newName);
+            return mapper.departmentToResponse(department);
+
+        } catch (ConstraintViolationException e) {
+            throw new DepartmentException(format("Name %s already exists!", newName), e);
+
+        } catch (Exception e) {
+            throw new DatabaseException(format("Error occured in update department: %s", e.getMessage()), e);
         }
 
     }
@@ -284,24 +306,6 @@ public final class DepartmentService {
 
     }
 
-    //Possibility of adding new options
-    public DepartmentResponse updateByOption(final DepartmentUpdate option, final Department department) {
 
-        final String newName = validateAndFormatName(
-                readString("department name (without special characters and more than 2 characters)")
-        );
-
-        try {
-            repository.updateName(department, newName);
-            return mapper.departmentToResponse(department);
-
-        } catch (ConstraintViolationException e) {
-            throw new DatabaseException(format("Name %s already exists!", newName), e);
-
-        } catch (Exception e) {
-            throw new DatabaseException(format("Error occured in update department: %s", e.getMessage()), e);
-        }
-
-    }
 
 }

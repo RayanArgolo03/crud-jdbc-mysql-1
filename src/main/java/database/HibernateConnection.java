@@ -17,6 +17,8 @@ public final class HibernateConnection {
     public HibernateConnection(String persistenceUnit) {
         manager = Persistence.createEntityManagerFactory(persistenceUnit)
                 .createEntityManager();
+
+        log.info("HibernateConnection initiated! Recreating database.. if you want to keep the last database, update ddl auto to *update* (current create-drop)");
     }
 
     public EntityManager getManager() {

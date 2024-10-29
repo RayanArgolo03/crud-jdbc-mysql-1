@@ -6,7 +6,6 @@ import enums.menu.YesOrNo;
 import exceptions.DatabaseException;
 import model.*;
 import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -108,7 +107,7 @@ class EmployeeRepositoryTest {
 
             repository.save(employee);
 
-            final Optional<Employee> optional = repository.findByName(employee.getName());
+            final Optional<Employee> optional = repository.findByDocument(employee.getDocument());
             assertTrue(optional.isPresent());
 
             final Employee employeeFound = optional.get();
@@ -121,7 +120,7 @@ class EmployeeRepositoryTest {
         @Test
         @DisplayName("Should be return empty optional when department not found by name")
         void givenFindByName_whenEmployeeNotFound_thenReturnEmptyOptional() {
-            assertTrue(repository.findByName(employee.getName()).isEmpty());
+            assertTrue(repository.findByDocument(employee.getName()).isEmpty());
         }
 
         @Nested
@@ -408,7 +407,7 @@ class EmployeeRepositoryTest {
                     .age(19)
                     .build());
 
-            employee = repository.findByName(employee.getName())
+            employee = repository.findByDocument(employee.getDocument())
                     .get();
 
             employee.setDocument(newDocument);
@@ -431,11 +430,11 @@ class EmployeeRepositoryTest {
         void givenDeleteByName_whenEmployeeIsDeleted_thenDoesNotThrowException() {
 
             repository.save(employee);
-            employee = repository.findByName(employee.getName()).get();
+            employee = repository.findByDocument(employee.getDocument()).get();
 
             repository.delete(employee);
 
-            assertTrue(repository.findByName(employee.getName()).isEmpty());
+            assertTrue(repository.findByDocument(employee.getName()).isEmpty());
 
         }
 

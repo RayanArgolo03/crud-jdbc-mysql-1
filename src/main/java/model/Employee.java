@@ -3,7 +3,6 @@ package model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
@@ -20,7 +19,7 @@ import java.util.Set;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "employees")
 
-@NamedQuery(name = "Employee.findByName", query = "SELECT e FROM Employee e WHERE name = :name")
+@NamedQuery(name = "Employee.findByDocument", query = "SELECT e FROM Employee e WHERE document = :document")
 public abstract class Employee {
 
     @Id

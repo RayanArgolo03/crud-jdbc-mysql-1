@@ -88,7 +88,6 @@ public final class Application {
 
     }
 
-
     private static void loginMenu(final UserResponse response) {
 
         log.info("{} logged into the system! \n", response);
@@ -185,7 +184,7 @@ public final class Application {
                 System.exit(0);
 
             } catch (Exception e) {
-                log.error("Error: {}", e.getMessage());
+                log.error( e.getMessage());
             }
 
         } while (option != DepartmentMenu.OUT);

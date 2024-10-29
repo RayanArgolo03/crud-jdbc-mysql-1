@@ -145,11 +145,11 @@ public final class EmployeeRepositoryImpl implements EmployeeRepository {
     }
 
     @Override
-    public Optional<Employee> findByName(final String name) {
+    public Optional<Employee> findByDocument(final String document) {
 
         return connection.getManager()
-                .createNamedQuery("Employee.findByName", Employee.class)
-                .setParameter("name", name)
+                .createNamedQuery("Employee.findByDocument", Employee.class)
+                .setParameter("document", document)
                 .getResultStream()
                 .findFirst();
     }

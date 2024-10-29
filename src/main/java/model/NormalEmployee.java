@@ -5,12 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 import org.hibernate.annotations.DynamicUpdate;
 
-import java.util.Objects;
-
-@Getter
 @EqualsAndHashCode(callSuper = true)
 
 @Entity
@@ -29,7 +25,9 @@ public class NormalEmployee extends Employee {
         this.hasFaculty = builder.hasFaculty;
     }
 
-    public void hasFaculty() {
+    public boolean hasFaculty() { return hasFaculty; }
+
+    public void setHasFaculty() {
         this.hasFaculty = true;
     }
 

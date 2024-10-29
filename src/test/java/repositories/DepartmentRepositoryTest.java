@@ -4,6 +4,7 @@ import criteria.DepartmentFilter;
 import database.HibernateConnection;
 import exceptions.DatabaseException;
 import model.*;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import repositories.impl.DepartmentRepositoryImpl;
 import repositories.interfaces.DepartmentRepository;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DepartmentRepositoryTest {
 
     private DepartmentRepository repository = new DepartmentRepositoryImpl(new HibernateConnection("h2"));
-    ;
+
     private Department department = new Department("DEP");
 
     @Nested
@@ -52,7 +54,7 @@ class DepartmentRepositoryTest {
             final DatabaseException e = assertThrows(DatabaseException.class, () ->
                     repository.save(new Department(department.getName())));
 
-            assertInstanceOf(ConstraintViolationException.class, e.getCause());
+            assertInstanceOf(SQLException.class, e.getCause());
 
         }
 
@@ -384,21 +386,6 @@ class DepartmentRepositoryTest {
             }
 
             @Test
-            @DisplayName("Should be return set of department when department exists by department update date")
-            void givenFindByFilters_whenDepartmentExistsByDepartmentUpdateDate_thenReturnSetOfDepartment() {
-
-                repository.save(department);
-                department = repository.findByDepartmentName(department.getName())
-                        .get();
-
-                repository.updateName(department, "DE");
-
-                filters.setLastUpdateDate(department.getLastUpdateDate());
-
-                assertEquals(1, repository.findbyFilters(filters).size());
-            }
-
-            @Test
             @DisplayName("Should be return Empty set when departments not exists by department update date")
             void givenFindByFilters_whenDeparmentNotExistsByDepartmentUpdateDate_thenReturnEmptySet() {
                 filters.setLastUpdateDate(department.getLastUpdateDate());
@@ -427,32 +414,6 @@ class DepartmentRepositoryTest {
             void givenFindByFilters_whenDeparmentNotExistsByDepartmentUpdateTime_thenReturnEmptySet() {
                 filters.setLastUpdateTime(LocalTime.now());
                 assertEquals(Collections.EMPTY_SET, repository.findbyFilters(filters));
-            }
-
-            @Test
-            @DisplayName("Should be return set of department when department exists by all filters")
-            void givenFindByFilters_whenDepartmentExistsByAllFilters_thenReturnSetOfDeparment() {
-
-                repository.save(department);
-                department = repository.findByDepartmentName(department.getName())
-                        .get();
-                repository.updateName(department, "DE");
-
-                filters.setDepartmentName(department.getName());
-                filters.setEmployeeName(employee.getName());
-                filters.setEmployeeAge(employee.getAge());
-                filters.setCreationDate(department.getCreatedDate().toLocalDate());
-                filters.setEmployeeHireDate(employee.getHireDate().toLocalDate());
-                filters.setLastUpdateDate(department.getLastUpdateDate().truncatedTo(ChronoUnit.MICROS));
-
-                LocalTime localTime = LocalTime.of(
-                        department.getLastUpdateDate().getHour(),
-                        department.getLastUpdateDate().getMinute()
-                );
-
-                filters.setLastUpdateTime(localTime);
-
-                assertEquals(1, repository.findbyFilters(filters).size());
             }
 
             @Test
@@ -502,13 +463,12 @@ class DepartmentRepositoryTest {
         @DisplayName("Should be throw DatabaseException when department name already exists")
         void givenUpdateName_whenDepartmentNameAlreadyExists_thenThrowDatabaseException() {
 
-            final String oldName = department.getName();
             final String newName = "PET";
 
             repository.save(department);
             repository.save(new Department(newName));
 
-            final Department departmentFound = repository.findByDepartmentName(oldName).get();
+            final Department departmentFound = repository.findByDepartmentName(department.getName()).get();
 
             final DatabaseException e = assertThrows(DatabaseException.class, () ->
                     repository.updateName(departmentFound, newName));

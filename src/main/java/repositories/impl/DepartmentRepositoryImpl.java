@@ -18,6 +18,7 @@ import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 public final class DepartmentRepositoryImpl implements DepartmentRepository {
@@ -99,7 +100,6 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
             ));
         }
 
-
         if (filters.getLastUpdateDate() != null) {
 
             predicates.add(builder.equal(
@@ -117,6 +117,7 @@ public final class DepartmentRepositoryImpl implements DepartmentRepository {
                     filters.getLastUpdateTime()
             ));
         }
+
 
         query.multiselect(root, jobs)
                 .where(predicates.toArray(Predicate[]::new));

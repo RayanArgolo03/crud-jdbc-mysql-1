@@ -9,7 +9,7 @@ import java.util.Set;
 public interface EmployeeRepository extends EntityRepository<Employee> {
 
     Set<Employee> findByFilters(EmployeeFilter filters);
-    Optional<Employee> findByName(String name);
+    Optional<Employee> findByDocument(String document);
 
     void update(Employee employee);
 

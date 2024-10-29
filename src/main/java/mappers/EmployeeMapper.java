@@ -18,7 +18,7 @@ public interface EmployeeMapper {
     @Mapping(target = "lastUpdate", expression = "java(FormatterUtils.formatTemporalToString(employee.getLastUpdateDate()))")
 
     //Mapping specific attributes
-    @Mapping(target = "hasFaculty", expression = "java( (employee instanceof NormalEmployee ne) ? ne.isHasFaculty() : null )")
+    @Mapping(target = "hasFaculty", expression = "java( (employee instanceof NormalEmployee ne) ? ne.hasFaculty() : null )")
     @Mapping(target = "workExperience", expression = "java( (employee instanceof SuperiorEmployee se) ? se.getWorkExperience() : null )")
     EmployeeResponse employeeToResponse(Employee employee);
 

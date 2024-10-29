@@ -1,6 +1,5 @@
 package controllers;
 
-import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
 import enums.department.DepartmentFind;
 import enums.department.DepartmentUpdate;
@@ -37,7 +36,7 @@ public final class DepartmentController {
         );
 
         return service.save(
-                new DepartmentRequest(name)
+                new Department(name)
         );
 
     }

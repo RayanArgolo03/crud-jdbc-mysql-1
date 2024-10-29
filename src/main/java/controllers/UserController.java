@@ -15,7 +15,7 @@ public final class UserController {
 
     public UserResponse create() {
 
-        final String username = ReaderUtils.readString("username (with more than 3 characters and without special characters)");
+        final String username = ReaderUtils.readString("username (at least 3 characters and without special characters)");
         service.validateAndFormatUsername(username);
 
         //Not allow continue if user already exists in the database
@@ -29,10 +29,8 @@ public final class UserController {
 
     public UserResponse find() {
 
-        final String username = "jonas&";
-//        final String username = ReaderUtils.readString("username");
-        final String password = "ui*";
-//        final String password = ReaderUtils.readString("password");
+        final String username = ReaderUtils.readString("username");
+        final String password = ReaderUtils.readString("password");
 
         return service.findUser(username, password);
     }

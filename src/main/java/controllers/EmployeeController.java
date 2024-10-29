@@ -40,7 +40,7 @@ public final class EmployeeController {
 
         final LocalDate birthDate = service.parseAndValidateTemporal(
                 readString("birth date (pattern dd/MM/yyyy)"),
-                "dd/MM/uuuu",
+                LocalDate.class,
                 LocalDate::from
         );
 
@@ -65,12 +65,14 @@ public final class EmployeeController {
     }
 
     public Set<EmployeeResponse> findByFilters() {
-        return service.findByFilters();
+        return service.findByFilters(
+                service.createFilters()
+        );
     }
 
     public Employee find() {
-        return service.findByName(
-                ReaderUtils.readString("first name")
+        return service.findByDocument(
+                ReaderUtils.readString("document")
         );
     }
 

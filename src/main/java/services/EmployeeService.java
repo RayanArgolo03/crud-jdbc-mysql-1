@@ -6,8 +6,8 @@ import dtos.response.EmployeeResponse;
 import enums.employee.EmployeeFind;
 import enums.employee.EmployeeUpdate;
 import enums.menu.YesOrNo;
-import exceptions.DatabaseException;
 import exceptions.EmployeeException;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import mappers.EmployeeMapper;
 import model.*;
@@ -21,7 +21,7 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Period;
-import java.time.temporal.TemporalAccessor;
+import java.time.temporal.Temporal;
 import java.time.temporal.TemporalQuery;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +33,8 @@ import static utils.ReaderUtils.*;
 public final class EmployeeService {
 
     private final EmployeeRepository repository;
+
+    @Getter
     private final EmployeeMapper mapper;
 
     public EmployeeService(EmployeeRepository repository, EmployeeMapper mapper) {
@@ -40,40 +42,19 @@ public final class EmployeeService {
         this.mapper = mapper;
     }
 
-    public EmployeeMapper getMapper() {
-        return mapper;
-    }
+    public EmployeeResponse save(final Employee employee) {
 
-    public String validateAndFormatName(final String value) {
+        try {
+            repository.save(employee);
+            return mapper.employeeToResponse(employee);
 
-        if (value.length() < 3) throw new EmployeeException("Short name!");
+            //If document already exists
+        } catch (ConstraintViolationException e) {
+            throw new EmployeeException("Employee already exists!", e);
 
-        if (!value.matches("^[A-Za-zÀ-ÖØ-öø-ÿ]+$")) {
-            throw new EmployeeException(format("%s contains special characters!", value));
+        } catch (Exception e) {
+            throw new EmployeeException(format("Error in save: %s", e.getMessage()), e);
         }
-
-        return FormatterUtils.formatName(value);
-
-    }
-
-    public String validateAndFormatDocument(final String value) {
-
-        if (!value.matches("(^\\d{3}\\x2E\\d{3}\\x2E\\d{3}\\x2D\\d{2}$)")) {
-            throw new EmployeeException(format("CPF %s does not match the patern xxx.xxx.xxx-xx with symbols!", value));
-        }
-
-        return value.replaceAll("[^0-9]", "");
-
-    }
-
-
-    public int generateAge(final LocalDate birthDate) {
-
-        final Period p = birthDate.until(LocalDate.now());
-
-        return (p.getMonths() == 0 && p.getDays() == 0)
-                ? p.getYears() //It´s aniversary
-                : p.getYears() - 1;
     }
 
     public Set<Job> createJobs(final List<Department> departments, final Employee employee) {
@@ -122,14 +103,6 @@ public final class EmployeeService {
         return jobs;
     }
 
-    public BigDecimal validateAndFormatSalary(final String value) {
-
-        if (!value.matches("^[0-9]+([.,][0-9]{1,2})?$")) {
-            throw new EmployeeException(format("%s is invalid salary!", value));
-        }
-
-        return new BigDecimal(value.replace(",", "."));
-    }
 
     public void defineSpecificAtributtes(final Employee employee) {
 
@@ -142,7 +115,7 @@ public final class EmployeeService {
                         YesOrNo.class
                 );
 
-                if (yesOrNo == YesOrNo.YES) ne.hasFaculty();
+                if (yesOrNo == YesOrNo.YES) ne.setHasFaculty();
 
             } else if (employee instanceof SuperiorEmployee se) {
 
@@ -156,7 +129,7 @@ public final class EmployeeService {
 
         } catch (Exception e) {
             log.error("{} - Default info is defined!", e.getMessage());
-            //Error occured = Has faculty null or work experience is 1
+            //Error occured = Has faculty false or work experience is 1
         }
 
     }
@@ -167,32 +140,11 @@ public final class EmployeeService {
 
         if (workExperience > age) throw new EmployeeException("Did the employee work before they were born?");
 
-        if (age - workExperience < 15) {
-            throw new EmployeeException("Can´t be started work under the age of fifteen! (15 years old)");
-        }
-
         se.setWorkExperience(workExperience);
     }
 
-    public EmployeeResponse save(final Employee employee) {
+    public Set<EmployeeResponse> findByFilters(final EmployeeFilter filters) {
 
-        try {
-            repository.save(employee);
-            return mapper.employeeToResponse(employee);
-
-            //If document already exists
-        } catch (ConstraintViolationException e) {
-            throw new EmployeeException("Employee already exists!", e);
-
-        } catch (DatabaseException e) {
-            throw new EmployeeException(format("Error in save: %s", e.getMessage()), e);
-        }
-    }
-
-
-    public Set<EmployeeResponse> findByFilters() {
-
-        final EmployeeFilter filters = createFilters();
         Objects.requireNonNull(filters, "No filters to find employees!");
 
         final Set<Employee> employees = repository.findByFilters(filters);
@@ -216,7 +168,7 @@ public final class EmployeeService {
                     case DEPARTMENT_NAME -> {
 
                         final String departmentName = readString("department name");
-                        if (filters.getDepartmentName() == null || !departmentName.equalsIgnoreCase(filters.getDepartmentName())) {
+                        if (!departmentName.equalsIgnoreCase(filters.getDepartmentName())) {
                             filters.setDepartmentName(departmentName.toLowerCase());
                         }
 
@@ -224,7 +176,7 @@ public final class EmployeeService {
                     case EMPLOYEE_NAME -> {
 
                         final String employeeName = readString("employee name");
-                        if (filters.getEmployeeName() == null || !employeeName.equalsIgnoreCase(filters.getEmployeeName())) {
+                        if (!employeeName.equalsIgnoreCase(filters.getEmployeeName())) {
                             filters.setEmployeeName(employeeName.toUpperCase());
                         }
 
@@ -232,7 +184,7 @@ public final class EmployeeService {
                     case DOCUMENT -> {
 
                         final String document = validateAndFormatDocument(readString("CPF (patern xxx.xxx.xxx-xx with symbols)"));
-                        if (filters.getDocument() == null || !document.equals(filters.getDocument())) {
+                        if (!document.equals(filters.getDocument())) {
                             filters.setDocument(document);
                         }
 
@@ -240,14 +192,13 @@ public final class EmployeeService {
                     case AGE -> {
 
                         final int employeeAge = readInt("age");
-                        if (filters.getEmployeeAge() == null || employeeAge != filters.getEmployeeAge()) {
+                        if (employeeAge != filters.getEmployeeAge()) {
                             filters.setEmployeeAge(employeeAge);
                         }
 
                     }
                     case WORK_EXPERIENCE -> {
 
-                        //Todo test null pointer estoura sem comparação null inicial? Programação defensiva?
                         final int workExperience = readInt("work experience");
                         if (workExperience != filters.getWorkExperience()) {
                             filters.setWorkExperience(workExperience);
@@ -258,11 +209,11 @@ public final class EmployeeService {
 
                         final LocalDate birthDate = parseAndValidateTemporal(
                                 readString("birth date (pattern DD/MM/YYYY)"),
-                                "dd/MM/uuuu",
+                                LocalDate.class,
                                 LocalDate::from
                         );
 
-                        if (!filters.getBirthDate().isEqual(birthDate)) {
+                        if (!birthDate.isEqual(filters.getBirthDate())) {
                             filters.setBirthDate(birthDate);
                         }
 
@@ -271,11 +222,11 @@ public final class EmployeeService {
 
                         final LocalDate hireDate = parseAndValidateTemporal(
                                 readString("hire date (pattern DD/MM/YYYY)"),
-                                "dd/MM/uuuu",
+                                LocalDate.class,
                                 LocalDate::from
                         );
 
-                        if (!filters.getHireDate().isEqual(hireDate)) {
+                        if (!hireDate.isEqual(filters.getHireDate())) {
                             filters.setHireDate(hireDate);
                         }
 
@@ -284,11 +235,11 @@ public final class EmployeeService {
 
                         final LocalTime hireTime = parseAndValidateTemporal(
                                 readString("hire time (pattern HH:MM)"),
-                                "HH:mm",
+                                LocalTime.class,
                                 LocalTime::from
                         );
 
-                        if (!filters.getHireTime().equals(hireTime)) {
+                        if (!hireTime.equals(filters.getHireTime())) {
                             filters.setHireTime(hireTime);
                         }
 
@@ -309,22 +260,10 @@ public final class EmployeeService {
         return filters;
     }
 
-    //Todo
-    public <T extends TemporalAccessor> T parseAndValidateTemporal(final String value, final String pattern, final TemporalQuery<T> query) {
 
-        try {
-            return null;
-//            return FormatterUtils.formatStringToTemporal(value, pattern, query);
-
-        } catch (DateTimeException e) {
-            throw new EmployeeException(format("%s does not matches the pattern %s!", value, pattern), e);
-        }
-
-    }
-
-    public Employee findByName(final String name) {
-        return repository.findByName(name)
-                .orElseThrow(() -> new EmployeeException(format("Employee %s not found!", name)));
+    public Employee findByDocument(final String document) {
+        return repository.findByDocument(document)
+                .orElseThrow(() -> new EmployeeException(format("Employee with document %s not found!", document)));
     }
 
     public EmployeeResponse updateByOption(final Employee employee) {
@@ -413,16 +352,74 @@ public final class EmployeeService {
 
     public void delete(final Employee employee) {
 
-        if (readEnum(format("Do you really want to dismiss %s?", employee.getName()), YesOrNo.class) == YesOrNo.YES) {
+        final YesOrNo yesOrNo = readEnum(format("Do you really want to dismiss %s?", employee.getName()), YesOrNo.class);
 
-            try {
-                repository.delete(employee);
-            } catch (Exception e) {
-                throw new EmployeeException(format("Error occured in delete employee: %s", e.getMessage()), e);
-            }
-
-            log.info("Employee dismissed!");
+        if (yesOrNo == YesOrNo.NO) {
+            log.info("Dismissal cancelled!");
+            return;
         }
+
+        try {
+            repository.delete(employee);
+        } catch (Exception e) {
+            throw new EmployeeException(format("Error occured in delete employee: %s", e.getMessage()), e);
+        }
+
+        log.info("Employee dismissed!");
+    }
+
+
+    public BigDecimal validateAndFormatSalary(final String value) {
+
+        if (!value.matches("^[0-9]+([.,][0-9]{1,2})?$")) {
+            throw new EmployeeException(format("%s is invalid salary! (Only numbers and decimal values separated by dot or comma)", value));
+        }
+
+        return new BigDecimal(value.replace(",", "."));
+    }
+
+
+    public String validateAndFormatName(final String value) {
+
+        if (value.length() < 3) throw new EmployeeException(format("%s is a short name!", value));
+
+        if (!value.matches("[A-Za-zÀ-ÖØ-öø-ÿ]+$")) {
+            throw new EmployeeException(format("%s contains special characters!", value));
+        }
+
+        return FormatterUtils.formatName(value);
+
+    }
+
+    public String validateAndFormatDocument(final String value) {
+
+        if (!value.matches("(^\\d{3}\\x2E\\d{3}\\x2E\\d{3}\\x2D\\d{2}$)")) {
+            throw new EmployeeException(format("CPF %s does not match the patern xxx.xxx.xxx-xx with symbols!", value));
+        }
+
+        return value.replaceAll("[^0-9]", "");
+
+    }
+
+
+    public int generateAge(final LocalDate birthDate) {
+
+        final Period p = birthDate.until(LocalDate.now());
+
+        return (p.getMonths() == 0 && p.getDays() == 0)
+                ? p.getYears() //It´s aniversary
+                : p.getYears() - 1;
+    }
+
+    public <T extends Temporal> T parseAndValidateTemporal(final String value, final Class<T> temporalClass, final TemporalQuery<T> query) {
+
+        try {
+            return FormatterUtils.formatStringToTemporal(value, temporalClass, query);
+
+        } catch (DateTimeException e) {
+            throw new EmployeeException(format("%s is invalid date/time", value), e);
+        }
+
     }
 
 }

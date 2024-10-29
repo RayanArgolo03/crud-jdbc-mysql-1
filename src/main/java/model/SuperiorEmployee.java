@@ -13,18 +13,22 @@ import org.hibernate.annotations.DynamicUpdate;
 @Entity
 @DynamicUpdate
 @Table(name = "superior_employees")
-public  class SuperiorEmployee extends Employee {
+public class SuperiorEmployee extends Employee {
 
     //If not set in defineSpecific method, using one year
     @Column(name = "work_experience", nullable = false)
-    private int workExperience = 1;
+    private int workExperience;
 
     public SuperiorEmployee() {
     }
 
     public SuperiorEmployee(Builder builder) {
         super(builder);
-        this.workExperience = builder.workExperience;
+
+        //If don´t pass, set 1 default
+        this.workExperience = (builder.workExperience == 0)
+                ? 1
+                : builder.workExperience;
     }
 
     public void setWorkExperience(int workExperience) {

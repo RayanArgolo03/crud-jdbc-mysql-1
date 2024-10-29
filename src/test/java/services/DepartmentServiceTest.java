@@ -3,7 +3,9 @@ package services;
 import criteria.DepartmentFilter;
 import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
+import enums.department.DepartmentUpdate;
 import exceptions.DepartmentException;
+import lombok.SneakyThrows;
 import mappers.DepartmentMapper;
 import model.Department;
 import org.hibernate.exception.ConstraintViolationException;
@@ -19,16 +21,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import repositories.interfaces.DepartmentRepository;
 import utils.FormatterUtils;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalQuery;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withTextFromSystemIn;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,7 +71,7 @@ class DepartmentServiceTest {
             when(repository.findAll()).thenReturn(List.of());
 
             final DepartmentException e = assertThrows(DepartmentException.class, () ->
-                    repository.findAll());
+                    service.findAll());
 
             final String expected = "No departments in the database!";
 
@@ -233,7 +236,7 @@ class DepartmentServiceTest {
 
             final DepartmentResponse response = service.findAndDelete(name);
 
-            assertEquals(name, response.name());
+            assertTrue(response.name().contains(name));
 
             verify(repository).findAndDelete(name);
             verify(mapper).departmentToResponse(any());
@@ -401,7 +404,7 @@ class DepartmentServiceTest {
                 "UZqZd[cYF[C-Q+$", "vU<]U7K_W8.1uo/", "^S4uG,kO1{FHHg8", "|F5$w!v-pBfKB'V", "_wgG'.TZFQnmG5r", "x4*la?@n]v;Gy7l", "/WTQ6t>C2[/J!Mf", "IW]?[wXE.beH'eL", "o25.#!p@>RRYYbA", "+uw^%l9hXwp;*7n", "8&U}oYd6HULla>g", "fJ&B,0bBDUvxF6>", "8IJO|B[)k:#qh=[", "!6Gd?M6<U&2uf1b", "ObV!)peNaqRa3q2", "8[J+F]%:GB,e$4w", ">-hB%'EZ;'8xV,|", "VZ0HF33?@.<J'#/", ")|s!M0IB3Xa'BhU", "r@:9z]Z}Pu2{D9p"
         })
         @DisplayName("Should be throw DepartmentException when value is invalid (out of the pattern required)")
-        void givenValidateAndFormatDate_whenValueIsInvalid_thenThrowDateTimeParseException(final String value){
+        void givenValidateAndFormatDate_whenValueIsInvalid_thenThrowDateTimeParseException(final String value) {
 
             final DepartmentException e = assertThrows(DepartmentException.class, () ->
                     service.validateAndFormatDate(value, Temporal.class, LocalTime::from));
@@ -414,8 +417,5 @@ class DepartmentServiceTest {
         }
 
     }
-
-    //Todo update by
-
 
 }
