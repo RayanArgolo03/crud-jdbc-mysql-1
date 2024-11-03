@@ -64,5 +64,8 @@ public class Department {
                 .collect(Collectors.toSet());
     }
 
-
+    @Override
+    public String toString() {
+        return "Department " +name;
+    }
 }

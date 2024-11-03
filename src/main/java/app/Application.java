@@ -47,7 +47,6 @@ public final class Application {
     private Application() {
     }
 
-
     public static void main(String[] args) {
         System.out.println("This system has been refactored of JDBC to Hibernate/MongoDb - Always restart MongoDB and MySQL databases");
         mainMenu();
@@ -184,7 +183,7 @@ public final class Application {
                 System.exit(0);
 
             } catch (Exception e) {
-                log.error( e.getMessage());
+                log.error(e.getMessage());
             }
 
         } while (option != DepartmentMenu.OUT);

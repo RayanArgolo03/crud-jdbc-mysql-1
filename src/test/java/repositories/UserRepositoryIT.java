@@ -11,13 +11,11 @@ import repositories.impl.UserRepositoryImpl;
 import repositories.interfaces.UserRepository;
 
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static database.FlapdoodleConnection.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserRepositoryTest {
+class UserRepositoryIT {
 
     private static final String COLLECTION_NAME = "user";
     private static final Class<User> COLLECTION_CLASS = User.class;

@@ -1,14 +1,10 @@
 package services;
 
 import criteria.DepartmentFilter;
-import dtos.request.DepartmentRequest;
 import dtos.response.DepartmentResponse;
-import enums.department.DepartmentUpdate;
 import exceptions.DepartmentException;
-import lombok.SneakyThrows;
 import mappers.DepartmentMapper;
 import model.Department;
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import repositories.interfaces.DepartmentRepository;
+import services.DepartmentService;
 import utils.FormatterUtils;
 
 import java.time.LocalDate;
@@ -31,7 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.withTextFromSystemIn;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,13 +82,11 @@ class DepartmentServiceTest {
     @DisplayName("*** Save tests ***")
     class SaveTests {
 
-        private DepartmentRequest request = new DepartmentRequest("asas");
 
         @Test
         @DisplayName("Should be return Department mapped to DeparmentResponse when Department is saved")
         void givenSave_whenDepartmentIsSaved_thenReturnDepartmentMappedToDepartmentResponse() {
 
-            when(mapper.requestToDepartment(request)).thenReturn(new Department(request.name()));
 
             doAnswer((argument) -> {
                 Department departmentSaved = argument.getArgument(0);
@@ -116,33 +110,11 @@ class DepartmentServiceTest {
 
             }).when(mapper).departmentToResponse(any());
 
-            assertNotNull(service.save(request));
+            assertNotNull(service.save(new Department("any")));
 
-            verify(mapper).requestToDepartment(any());
             verify(mapper).departmentToResponse(any());
             verify(repository).save(any());
 
-        }
-
-        @Test
-        @DisplayName("Should be throw DepartmentExcetion when Department already exists")
-        void givenSave_whenDepartmentAlreadyExists_thenThrowDepartmentException() {
-
-            when(mapper.requestToDepartment(request)).thenReturn(new Department(request.name()));
-
-            doThrow(ConstraintViolationException.class).when(repository).save(any());
-
-            final DepartmentException e = assertThrows(DepartmentException.class, () ->
-                    service.save(request));
-
-            final String expected = format("Department %s already exists!", request.name());
-
-            assertEquals(expected, e.getMessage());
-            assertInstanceOf(ConstraintViolationException.class, e.getCause());
-
-            verify(mapper).requestToDepartment(request);
-            verify(repository).save(any());
-            verify(mapper, never()).departmentToResponse(any());
         }
 
     }

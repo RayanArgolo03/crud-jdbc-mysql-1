@@ -39,7 +39,7 @@ public final class EmployeeController {
         );
 
         final LocalDate birthDate = service.parseAndValidateTemporal(
-                readString("birth date (pattern dd/MM/yyyy)"),
+                readString("birth date (pattern dd/MM/yyyy, employee must be over 15 years old)"),
                 LocalDate.class,
                 LocalDate::from
         );

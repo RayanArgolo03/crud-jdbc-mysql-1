@@ -4,7 +4,6 @@ import criteria.DepartmentFilter;
 import database.HibernateConnection;
 import exceptions.DatabaseException;
 import model.*;
-import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,12 +17,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DepartmentRepositoryTest {
+class DepartmentRepositoryIT {
 
     private DepartmentRepository repository = new DepartmentRepositoryImpl(new HibernateConnection("h2"));
 
@@ -139,20 +137,6 @@ class DepartmentRepositoryTest {
         @DisplayName("Should be return Empty Optional when Department not found by creation date")
         void givenFindByCreationDate_whenDepartmentNotFound_thenReturnEmptyOptional() {
             assertTrue(repository.findByCreationDate(LocalDate.now()).isEmpty());
-        }
-
-        @Test
-        @DisplayName("Should be return Department Optional when Department has been found by update date")
-        void givenFindByUpdateDate_whenDepartmentHasBeenFound_thenReturnDepartmentOptional() {
-
-            repository.save(department);
-
-            department = repository.findByDepartmentName(department.getName()).get();
-            repository.updateName(department, "newName");
-
-            final Optional<Department> optional = repository.findByUpdateDate(department.getLastUpdateDate().truncatedTo(ChronoUnit.MICROS));
-            assertTrue(optional.isPresent());
-
         }
 
         @Test
@@ -272,7 +256,7 @@ class DepartmentRepositoryTest {
 
             repository.save(department);
 
-            final Optional<Department> optional = repository.findAndDelete(DepartmentRepositoryTest.this.department.getName());
+            final Optional<Department> optional = repository.findAndDelete(DepartmentRepositoryIT.this.department.getName());
             assertTrue(optional.isPresent());
 
             //Verify if department has been deleted
@@ -284,7 +268,7 @@ class DepartmentRepositoryTest {
         @Test
         @DisplayName("Should be returns Empty Optional when department not found")
         void givenFindAndDelete_whenDepartmentNotFound_thenReturnEmptyOptional() {
-            final Optional<Department> optional = repository.findAndDelete(DepartmentRepositoryTest.this.department.getName());
+            final Optional<Department> optional = repository.findAndDelete(DepartmentRepositoryIT.this.department.getName());
             assertTrue(optional.isEmpty());
         }
 

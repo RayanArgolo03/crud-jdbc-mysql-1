@@ -22,7 +22,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class EmployeeRepositoryTest {
+class EmployeeRepositoryIT {
 
     private static final String UNIT_PERSITENCE = "h2";
 

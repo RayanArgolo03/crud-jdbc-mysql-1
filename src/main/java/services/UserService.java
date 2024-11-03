@@ -12,8 +12,6 @@ import mappers.UserMapper;
 import model.User;
 import repositories.interfaces.UserRepository;
 
-import java.util.PrimitiveIterator;
-
 import static java.lang.String.format;
 
 @AllArgsConstructor

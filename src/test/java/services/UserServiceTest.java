@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import repositories.interfaces.UserRepository;
+import services.UserService;
 
 import java.util.Optional;
 

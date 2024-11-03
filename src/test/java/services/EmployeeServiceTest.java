@@ -15,11 +15,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import repositories.interfaces.EmployeeRepository;
+import services.EmployeeService;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -62,7 +65,7 @@ class EmployeeServiceTest {
             }).when(repository).save(employee);
 
             doAnswer(argument -> {
-                return EmployeeResponse.builder()
+                        return EmployeeResponse.builder()
                                 .id(argument.getArgument(0, Employee.class).getId())
                                 .name(argument.getArgument(0, Employee.class).getName())
                                 .build();
@@ -416,27 +419,101 @@ class EmployeeServiceTest {
     @DisplayName("*** GenerateAge tests ***")
     class GenerateAgeTests {
 
-        private LocalDate now = LocalDate.now();
+        private LocalDate mockNow = LocalDate.of(2010, 4, 5);
 
         @Test
-        @DisplayName("Should be return exactly difference between date now and birth date when its aniversary")
-        void givenGenerateAge_whenItsAniversary_thenReturnExactlyDifferenceBetweenDateNowAndBirthDate() {
+        @DisplayName("Should be throw EmployeeException when employee has less than 15 years")
+        void givenGenerateAge_whenEmployeeUnderage_thenThrowEmployeeException() {
 
-            final LocalDate birthDate = LocalDate.of(2007, now.getMonthValue(), now.getDayOfMonth());
-            int expected = now.getYear() - birthDate.getYear();
+            final LocalDate birthDate = LocalDate.of(
+                    mockNow.getYear() - 14,
+                    mockNow.getMonthValue(),
+                    mockNow.getDayOfMonth()
+            );
 
-            assertEquals(expected, service.generateAge(birthDate));
+            try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class)) {
+
+                mock.when(LocalDate::now).thenReturn(mockNow);
+
+                //Use of Period until method
+                mock.when(() -> LocalDate.from(any())).thenReturn(mockNow);
+
+                final EmployeeException e = assertThrows(EmployeeException.class, ()
+                        -> service.generateAge(birthDate));
+
+                final String expected = "Employee underage!";
+                assertEquals(expected, e.getMessage());
+
+            }
+
 
         }
 
         @Test
-        @DisplayName("Should be return  difference between date now and birth date minus one when not its aniversary")
-        void givenGenerateAge_whenNotItsAniversary_thenReturnDifferenceBetweenDateNowAndBirthDateMinusOne() {
+        @DisplayName("Should be return exactly years difference between birthdate and now when its anniversary")
+        void givenGenerateAge_whenItsAnniversary_thenReturnExactlyYearsDifferenceBetweenBirthDateAndNow() {
 
-            final LocalDate birthDate = LocalDate.of(2007, now.getMonthValue() - 1, now.getDayOfMonth());
-            int expected = now.getYear() - birthDate.getYear();
+            final int expectedAge = 18;
 
-            assertEquals(expected - 1, service.generateAge(birthDate));
+            final LocalDate birthDate = LocalDate.of(
+                    mockNow.getYear() - expectedAge,
+                    mockNow.getMonthValue(),
+                    mockNow.getDayOfMonth()
+            );
+
+
+            try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class)) {
+                mock.when(LocalDate::now).thenReturn(mockNow);
+
+                //Use of Period until method
+                mock.when(() -> LocalDate.from(any())).thenReturn(mockNow);
+
+                assertEquals(expectedAge, service.generateAge(birthDate));
+            }
+
+        }
+
+        @Test
+        @DisplayName("Should be return exactly years difference between birthdate and now when anniversary was before")
+        void givenGenerateAge_whenAnniversaryWasBefore_thenReturnExactlyYearsDifferenceBetweenBirthDateAndNow() {
+
+            final int expectedAge = 18;
+
+            final LocalDate birthDate = LocalDate.of(
+                    mockNow.getYear() - expectedAge,
+                    mockNow.getMonthValue(),
+                    mockNow.getDayOfMonth() - 1);
+
+            try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class)) {
+                mock.when(LocalDate::now).thenReturn(mockNow);
+
+                //Use of Period until method
+                mock.when(() -> LocalDate.from(any())).thenReturn(mockNow);
+
+                assertEquals(expectedAge, service.generateAge(birthDate));
+            }
+
+        }
+
+        @Test
+        @DisplayName("Should be return difference between birthdate minus one year")
+        void givenGenerateAge_whenNoAnniversary_thenReturnDifferenceBetweenBirthDateAndNowMinusOneYear() {
+
+            final int expectedAge = 18;
+
+            final LocalDate birthDate = LocalDate.of(
+                    mockNow.getYear() - expectedAge,
+                    mockNow.getMonthValue() - 1,
+                    mockNow.getDayOfMonth());
+
+            try (MockedStatic<LocalDate> mock = mockStatic(LocalDate.class)) {
+                mock.when(LocalDate::now).thenReturn(mockNow);
+
+                //Use of Period until method
+                mock.when(() -> LocalDate.from(any())).thenReturn(mockNow);
+
+                assertEquals(expectedAge - 1, service.generateAge(birthDate));
+            }
 
         }
 

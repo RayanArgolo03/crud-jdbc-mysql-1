@@ -404,11 +404,17 @@ public final class EmployeeService {
 
     public int generateAge(final LocalDate birthDate) {
 
-        final Period p = birthDate.until(LocalDate.now());
+        final LocalDate now = LocalDate.now();
+        final Period diff = birthDate.until(now);
 
-        return (p.getMonths() == 0 && p.getDays() == 0)
-                ? p.getYears() //It´s aniversary
-                : p.getYears() - 1;
+        if (diff.getYears() < 15) throw new EmployeeException("Employee underage!");
+
+        boolean itsAnniversary = diff.getMonths() == 0 && diff.getDays() == 0;
+        boolean aniversaryWasBefore = diff.getMonths() == 0 && birthDate.getDayOfMonth() < now.getDayOfMonth();
+
+        return (itsAnniversary || aniversaryWasBefore)
+                ? diff.getYears()
+                : diff.getYears() - 1;
     }
 
     public <T extends Temporal> T parseAndValidateTemporal(final String value, final Class<T> temporalClass, final TemporalQuery<T> query) {

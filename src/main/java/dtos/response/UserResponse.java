@@ -1,5 +1,6 @@
 package dtos.response;
 
+import lombok.Builder;
 
 public record UserResponse(String username) {
 
