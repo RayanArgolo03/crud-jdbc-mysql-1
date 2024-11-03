@@ -4,6 +4,9 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 ## Tecnologias Utilizadas
 - SQL
 - MySQL
+- H2 Database
+- Flapdoodle (Testes incorporados MongoDB)
+- Systemlambda (Testes System.out)
 - Lombok
 - Log4j2
 - Maven
@@ -12,6 +15,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 - Mapstruct
 - MongoDB
 - Junit5
+- JaCoCo
 - Mockito
 - Docker (Container MySQL)
 
@@ -45,7 +49,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 
 ## Diagrama Entidade Relacional
 
-<img src='https://github.com/RayanArgolo03/crud-jdbc-mysql-1/assets/113947677/ed7dce62-dbd9-4c87-a4bb-d95248b45d9b' width='600' height='350'></img>
+<img src=''></img>
 
 ## Contribuição
 Contribuições são bem-vindas! Sinta-se à vontade para abrir problemas (issues) ou enviar solicitações de pull (pull requests) com melhorias, correções de bugs ou novas funcionalidades.
