@@ -49,7 +49,7 @@ Este projeto consiste em um sistema de gestão de funcionários, departamentos e
 
 ## Diagrama Entidade Relacional
 
-<img src=''></img>
+<img src='https://github.com/user-attachments/assets/0c3097e1-a4ba-4186-8ddf-46063e00beaf'></img>
 
 ## Contribuição
 Contribuições são bem-vindas! Sinta-se à vontade para abrir problemas (issues) ou enviar solicitações de pull (pull requests) com melhorias, correções de bugs ou novas funcionalidades.
